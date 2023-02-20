@@ -3,16 +3,19 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: "Inter Semibold";
-  src: url('assets/fonts/Inter-SemiBold.ttf');
+    font-family: "Inter Semibold";
+    src: url('assets/fonts/Inter-SemiBold.ttf');
 }
 
 @font-face {
-  font-family: "Inter Regular";
-  src: url('assets/fonts/Inter-Regular.ttf');
+    font-family: "Inter Regular";
+    src: url('assets/fonts/Inter-Regular.ttf');
 }
 
-* 
-{
-  font-family: "Inter Semibold";
+* {
+    font-family: "Poppins";
+}
+
+p {
+    font-family: "Poppins SemiBold";
 }

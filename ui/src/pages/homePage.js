@@ -1,11 +1,12 @@
 import React from 'react';
+import WelcomeBanner from '../components/home/welcomeBanner.js'
 
 const Home = () => {
-  return (
-    <div>
-      <h1>Welcome to SriOryzaugur</h1>
-    </div>
-  );
+    return (
+        <div>
+            <WelcomeBanner/>
+        </div>
+    );
 };
 
 export default Home;
