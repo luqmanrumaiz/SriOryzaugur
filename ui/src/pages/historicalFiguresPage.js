@@ -1,59 +1,68 @@
 import React from 'react';
-import { LineChart, Line } from 'recharts';
 
-const data = [
-    {
-        name: 'Page A',
-        uv: 4000,
-        pv: 2400,
-        amt: 2400,
-    },
-    {
-        name: 'Page B',
-        uv: 3000,
-        pv: 1398,
-        amt: 2210,
-    },
-    {
-        name: 'Page C',
-        uv: 2000,
-        pv: 9800,
-        amt: 2290,
-    },
-    {
-        name: 'Page D',
-        uv: 2780,
-        pv: 3908,
-        amt: 2000,
-    },
-    {
-        name: 'Page E',
-        uv: 1890,
-        pv: 4800,
-        amt: 2181,
-    },
-    {
-        name: 'Page F',
-        uv: 2390,
-        pv: 3800,
-        amt: 2500,
-    },
-    {
-        name: 'Page G',
-        uv: 3490,
-        pv: 4300,
-        amt: 2100,
-    }
-];
+import LineChart from '../components/charts/lineChart.js'
+import Header from '../components/pages/header.js'
+
+const chartData = {
+    labels: [
+        '12-01-2020', '01-01-2021', '02-01-2021',
+        '03-01-2021', '04-01-2021', '05-01-2021',
+        '06-01-2021', '07-01-2021', '08-01-2021',
+        '09-01-2021', '10-01-2021', '11-01-2021',
+        '12-01-2021', '01-01-2022', '02-01-2022',
+        '03-01-2022', '04-01-2022', '05-01-2022',
+        '06-01-2022', '07-01-2022', '08-01-2022',
+        '09-01-2022', '10-01-2022', '11-01-2022',
+        '12-01-2022', '01-01-2023',
+        ],
+    datasets: [
+        // Indigo line
+        {
+            data: [
+                622, 622, 426, 471, 365, 365, 238,
+                324, 288, 206, 324, 324, 500, 409,
+                409, 273, 232, 273, 500, 570, 767,
+                808, 685, 767, 685, 685,
+                ],
+            fill: true,
+//            backgroundColor: `rgba(${hexToRGB(tailwindConfig().theme.colors.blue[500])}, 0.08)`,
+//            borderColor: tailwindConfig().theme.colors.indigo[500],
+            borderWidth: 2,
+            tension: 0,
+            pointRadius: 0,
+            pointHoverRadius: 3,
+//            pointBackgroundColor: tailwindConfig().theme.colors.indigo[500],
+            clip: 20,
+        },
+        // Gray line
+        {
+            data: [
+                732, 610, 610, 504, 504, 504, 349,
+                349, 504, 342, 504, 610, 391, 192,
+                154, 273, 191, 191, 126, 263, 349,
+                252, 423, 622, 470, 532,
+                ],
+//            borderColor: tailwindConfig().theme.colors.slate[300],
+            borderWidth: 2,
+            tension: 0,
+            pointRadius: 0,
+            pointHoverRadius: 3,
+//            pointBackgroundColor: tailwindConfig().theme.colors.slate[300],
+            clip: 20,
+        },
+        ],
+};
 
 const HistoricalFiguresPage = () => {
     return (
         <div>
-            <h1>View Historical Figures</h1>
-
-            <LineChart width={400} height={400} data={data}>
-                <Line type="monotone" dataKey="uv" stroke="#8884d8" />
-            </LineChart>
+            <Header heading="View Historical Prices"/>
+            <div className="flex flex-col col-span-full sm:col-span-6 bg-white shadow-lg rounded-sm border border-slate-200">
+                <div className="grow">
+                    {/* Change the height attribute to adjust the chart height */}
+                    <LineChart data={chartData} width={595} height={248} />
+                </div>
+            </div>
         </div>
     );
 };

@@ -9,6 +9,8 @@
         "@testing-library/react": "^13.4.0",
         "@testing-library/user-event": "^13.5.0",
         "@visx/visx": "^3.0.1",
+        "chart.js": "^4.2.1",
+        "chartjs-adapter-moment": "^1.0.1",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-router-dom": "^6.8.1",
