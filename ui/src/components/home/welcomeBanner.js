@@ -3,7 +3,7 @@ import {Colors} from '../../values/colors.js';
 
 function WelcomeBanner() {
     return (
-        <div className="relative bg-white-200 p-4 sm:p-6 rounded-sm overflow-hidden mb-8 shadow-md">
+        <div className="relative bg-green-800 p-4 sm:p-6 rounded-sm overflow-hidden mb-8 shadow-md">
 
             {/* Background illustration */}
             <div className="absolute right-0 top-0 -mt-4 mr-16 pointer-events-none hidden xl:block" aria-hidden="true">
@@ -21,7 +21,7 @@ function WelcomeBanner() {
                         </linearGradient>
                         <linearGradient x1="50%" y1="24.537%" x2="50%" y2="100%" id="welcome-c">
                             <stop stopColor={Colors.primary} offset="0%"/>
-                            <stop stopColor="#6366F1" stopOpacity="0" offset="100%"/>
+                            <stop stopColor={Colors.secondary} stopOpacity="0" offset="100%"/>
                         </linearGradient>
                     </defs>
                     <g fill="none" fillRule="evenodd">
@@ -52,8 +52,8 @@ function WelcomeBanner() {
 
             {/* Content */}
             <div className="relative">
-                <h1 className="text-2xl md:text-3xl text-slate-800 font-bold mb-1">Ayubowan 👋</h1>
-                <p>Here is what’s happening with rice prices today:</p>
+                <h1 className="text-2xl md:text-3xl text-white font-bold mb-1">Ayubowan 👋</h1>
+                <p className="text-white	">Here is what’s happening with rice prices today:</p>
             </div>
         </div>
     );
