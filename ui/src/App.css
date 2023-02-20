@@ -1,21 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=fallback');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@font-face {
-    font-family: "Inter Semibold";
-    src: url('assets/fonts/Inter-SemiBold.ttf');
-}
-
-@font-face {
-    font-family: "Inter Regular";
-    src: url('assets/fonts/Inter-Regular.ttf');
-}
-
-* {
-    font-family: "Inter Semibold";
-}
-
-p {
-    font-family: "Inter";
-}

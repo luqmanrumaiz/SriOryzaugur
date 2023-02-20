@@ -1,10 +1,10 @@
 import React, { useRef, useEffect } from 'react';
-
 import {
     Chart, LineController, LineElement, Filler, PointElement, LinearScale, TimeScale, Tooltip,
 } from 'chart.js';
 import 'chartjs-adapter-moment';
 
+import { tailwindConfig, formatValue } from '../../utils/utils.js';
 
 Chart.register(LineController, LineElement, Filler, PointElement, LinearScale, TimeScale, Tooltip);
 
@@ -24,14 +24,14 @@ function LineChart({
             data: data,
             options: {
                 chartArea: {
-//                    backgroundColor: tailwindConfig().theme.colors.slate[50],
+                    backgroundColor: tailwindConfig().theme.colors.slate[50],
                 },
                 layout: {
                     padding: 20,
                 },
                 scales: {
                     y: {
-                        display: false,
+                        display: true,
                         beginAtZero: true,
                     },
                     x: {
@@ -40,18 +40,18 @@ function LineChart({
                             parser: 'MM-DD-YYYY',
                             unit: 'month',
                         },
-                        display: false,
+                        display: true,
                     },
                 },
                 plugins: {
                     tooltip: {
                         callbacks: {
                             title: () => false, // Disable tooltip title
-//                            label: (context) => formatValue(context.parsed.y),
+                            label: (context) => formatValue(context.parsed.y),
                         },
                     },
                     legend: {
-                        display: false,
+                        display: true,
                     },
                 },
                 interaction: {
