@@ -1,61 +1,49 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
+import axios from 'axios';
 
 import LineChart from '../components/charts/lineChart.js'
 import Header from '../components/pages/header.js'
 import {tailwindConfig, hexToRGB, formatValue} from '../utils/utils.js';
 import {Colors} from '../values/colors.js';
 
-const chartData = {
-    labels: [
-        '12-01-2020', '01-01-2021', '02-01-2021',
-        '03-01-2021', '04-01-2021', '05-01-2021',
-        '06-01-2021', '07-01-2021', '08-01-2021',
-        '09-01-2021', '10-01-2021', '11-01-2021',
-        '12-01-2021', '01-01-2022', '02-01-2022',
-        '03-01-2022', '04-01-2022', '05-01-2022',
-        '06-01-2022', '07-01-2022', '08-01-2022',
-        '09-01-2022', '10-01-2022', '11-01-2022',
-        '12-01-2022', '01-01-2023',
-    ],
-    datasets: [
-        // Indigo line
-        {
-            data: [
-                622, 622, 426, 471, 365, 365, 238,
-                324, 288, 206, 324, 324, 500, 409,
-                409, 273, 232, 273, 500, 570, 767,
-                808, 685, 767, 685, 685,
-            ],
-            fill: true,
-            backgroundColor: `rgba(${hexToRGB(tailwindConfig().theme.colors.green[600])}, 0.08)`,
-            borderColor: tailwindConfig().theme.colors.green[500],
-            borderWidth: 2,
-            tension: 0,
-            pointRadius: 0,
-            pointHoverRadius: 3,
-            pointBackgroundColor: tailwindConfig().theme.colors.green[500],
-            clip: 20,
-        },
-        // Gray line
-        {
-            data: [
-                732, 610, 610, 504, 504, 504, 349,
-                349, 504, 342, 504, 610, 391, 192,
-                154, 273, 191, 191, 126, 263, 349,
-                252, 423, 622, 470, 532,
-            ],
-            borderColor: tailwindConfig().theme.colors.slate[300],
-            borderWidth: 2,
-            tension: 0,
-            pointRadius: 0,
-            pointHoverRadius: 3,
-            pointBackgroundColor: tailwindConfig().theme.colors.slate[300],
-            clip: 20,
-        },
-    ],
-};
 
 const HistoricalFiguresPage = () => {
+    const [historicalData, setHistoricalData] = useState([]);
+    const [dates, setDates] = useState([]);
+    const [retailPrices, setRetailPrices] = useState([]);
+    const [chartData, setChartData] = useState({
+        labels: dates,
+        datasets: [
+            {
+                data: retailPrices,
+                fill: true,
+                borderColor: tailwindConfig().theme.colors.green[500],
+                borderWidth: 2,
+                tension: 0,
+                pointRadius: 0,
+                pointHoverRadius: 3,
+                pointBackgroundColor: tailwindConfig().theme.colors.green[500],
+                clip: 20,
+            }
+        ],
+    });
+
+    useEffect(() => {
+        axios.get(`http://127.0.0.1:5000/retrieve-historical-data/`)
+            .then(res => {
+                console.log("Data:", JSON.parse(res.data).map(obj => new Date(obj.Date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }).replace(/\//g, '-'))                );
+
+                setHistoricalData(JSON.parse(res.data));
+                setDates(JSON.parse(res.data).map(obj => new Date(obj.Date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }).replace(/\//g, '-'))                );
+                setRetailPrices(JSON.parse(res.data).map(obj => obj.Price));
+            })
+    }, []);
+
+    useEffect(() => {
+        chartData.labels = dates;
+        chartData.datasets[0].data = retailPrices;
+      }, [dates, retailPrices]);
+
     return (
         <div>
             <Header heading="View Historical Prices"/>
@@ -68,6 +56,11 @@ const HistoricalFiguresPage = () => {
                     </div>
                 </div>
             </main>
+            {
+                retailPrices.map(data =>
+                    <p>{data}</p>
+                )
+            }
         </div>
     );
 };

@@ -13,8 +13,13 @@ def home():
     # Convert the dataframe to JSON format
     data = df.to_json(orient='records')
 
-    # Return the JSON data
-    return jsonify(data)
+    # Convert the data to JSON
+    response = jsonify(data)
+
+    # Add the Access-Control-Allow-Origin header to the response
+    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+
+    return response
 
 
 if __name__ == '__main__':
