@@ -11,6 +11,8 @@ const HistoricalFiguresPage = () => {
     const [historicalData, setHistoricalData] = useState([]);
     const [dates, setDates] = useState([]);
     const [retailPrices, setRetailPrices] = useState([]);
+    const [chartInitialized, setChartInitialized] = useState(false);
+
     const [chartData, setChartData] = useState({
         labels: dates,
         datasets: [
@@ -31,18 +33,27 @@ const HistoricalFiguresPage = () => {
     useEffect(() => {
         axios.get(`http://127.0.0.1:5000/retrieve-historical-data/`)
             .then(res => {
-                console.log("Data:", JSON.parse(res.data).map(obj => new Date(obj.Date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }).replace(/\//g, '-'))                );
+                console.log("Data:", JSON.parse(res.data).map(obj => new Date(obj.Date).toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                }).replace(/\//g, '-')));
 
                 setHistoricalData(JSON.parse(res.data));
-                setDates(JSON.parse(res.data).map(obj => new Date(obj.Date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }).replace(/\//g, '-'))                );
+                setDates(JSON.parse(res.data).map(obj => new Date(obj.Date).toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                }).replace(/\//g, '-')));
                 setRetailPrices(JSON.parse(res.data).map(obj => obj.Price));
+                setChartInitialized(true);
             })
     }, []);
 
     useEffect(() => {
         chartData.labels = dates;
         chartData.datasets[0].data = retailPrices;
-      }, [dates, retailPrices]);
+    }, [dates, retailPrices]);
 
     return (
         <div>
@@ -51,7 +62,9 @@ const HistoricalFiguresPage = () => {
                 <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
                     <div className="px-4 py-6 sm:px-0">
                         <div className="h-96 rounded-lg border-4 border-dashed border-green-600 p-10">
-                            <LineChart data={chartData} width={595} height={248}/>
+                            {chartInitialized && (
+                                <LineChart data={chartData} width={595} height={248}/>
+                            )}
                         </div>
                     </div>
                 </div>
