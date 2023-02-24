@@ -3,57 +3,51 @@ import axios from 'axios';
 
 import LineChart from '../components/charts/lineChart.js'
 import Header from '../components/pages/header.js'
-import {tailwindConfig, hexToRGB, formatValue} from '../utils/utils.js';
-import {Colors} from '../values/colors.js';
-
+import {tailwindConfig} from '../utils/utils.js';
 
 const HistoricalFiguresPage = () => {
     const [historicalData, setHistoricalData] = useState([]);
-    const [dates, setDates] = useState([]);
-    const [retailPrices, setRetailPrices] = useState([]);
     const [chartInitialized, setChartInitialized] = useState(false);
-
-    const [chartData, setChartData] = useState({
-        labels: dates,
-        datasets: [
-            {
-                data: retailPrices,
-                fill: true,
-                borderColor: tailwindConfig().theme.colors.green[500],
-                borderWidth: 2,
-                tension: 0,
-                pointRadius: 0,
-                pointHoverRadius: 3,
-                pointBackgroundColor: tailwindConfig().theme.colors.green[500],
-                clip: 20,
-            }
-        ],
-    });
+    const chartData = {
+        datasets: [],
+    };
 
     useEffect(() => {
         axios.get(`http://127.0.0.1:5000/retrieve-historical-data/`)
             .then(res => {
-                console.log("Data:", JSON.parse(res.data).map(obj => new Date(obj.Date).toLocaleDateString('en-US', {
-                    month: '2-digit',
-                    day: '2-digit',
-                    year: 'numeric'
-                }).replace(/\//g, '-')));
+//                console.log(JSON.parse(res.data))
 
                 setHistoricalData(JSON.parse(res.data));
-                setDates(JSON.parse(res.data).map(obj => new Date(obj.Date).toLocaleDateString('en-US', {
-                    month: '2-digit',
-                    day: '2-digit',
-                    year: 'numeric'
-                }).replace(/\//g, '-')));
-                setRetailPrices(JSON.parse(res.data).map(obj => obj.Price));
                 setChartInitialized(true);
             })
     }, []);
 
     useEffect(() => {
-        chartData.labels = dates;
-        chartData.datasets[0].data = retailPrices;
-    }, [dates, retailPrices]);
+        // Creating a new array for the Date column to be used as the label of the chart
+        chartData.labels = historicalData.map(obj => new Date(obj.Date));
+
+        if (chartInitialized)
+            // Iterating through a row of the historical data to identify each column
+            for (let column in historicalData[0]) {
+                // As date is the index, it is not added to the dataset property of chartData
+                if (column !== "Date") {
+                    // Appending an option to create a line for each column or dataset
+                    let dataset = historicalData.map(obj => obj[column]);
+                    chartData.datasets.push({
+                        label: column,
+                        data: dataset,
+//                        fill: true,
+                        borderColor: tailwindConfig().theme.colors.green[500],
+                        borderWidth: 2,
+                        tension: 0,
+                        pointRadius: 0,
+                        pointHoverRadius: 3,
+                        pointBackgroundColor: tailwindConfig().theme.colors.green[500],
+                        clip: 20,
+                    })
+                }
+            }
+    }, [historicalData]);
 
     return (
         <div>
@@ -69,11 +63,6 @@ const HistoricalFiguresPage = () => {
                     </div>
                 </div>
             </main>
-            {
-                retailPrices.map(data =>
-                    <p>{data}</p>
-                )
-            }
         </div>
     );
 };
