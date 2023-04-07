@@ -36,7 +36,6 @@ const HistoricalFiguresPage = () => {
                     chartData.datasets.push({
                         label: column,
                         data: dataset,
-//                        fill: true,
                         borderColor: tailwindConfig().theme.colors.green[500],
                         borderWidth: 2,
                         tension: 0,
@@ -44,6 +43,7 @@ const HistoricalFiguresPage = () => {
                         pointHoverRadius: 3,
                         pointBackgroundColor: tailwindConfig().theme.colors.green[500],
                         clip: 20,
+                        hidden: true,
                     })
                 }
             }

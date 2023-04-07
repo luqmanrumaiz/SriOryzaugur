@@ -1,5 +1,5 @@
 import React from "react";
-import {BrowserRouter, Router, Route, Routes} from "react-router-dom";
+import {BrowserRouter, Route, Routes} from "react-router-dom";
 
 import HomePage from "./pages/homePage.js";
 import GuideAndInfoPage from "./pages/guideAndInfoPage.js";
