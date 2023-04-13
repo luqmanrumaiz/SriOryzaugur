@@ -1,5 +1,4 @@
 import React from 'react';
-import SystemGuide from '../components/pages/SystemGuide.mdx'
 
 const GuideAndInfoPage = () => {
     return (
