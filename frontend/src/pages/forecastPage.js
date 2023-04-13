@@ -1,9 +1,9 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
+import axios from 'axios';
 
 import LineChart from '../components/charts/lineChart.js'
 import Header from '../components/pages/header.js'
-import {tailwindConfig, hexToRGB, formatValue} from '../utils/utils.js';
-import {Colors} from '../values/colors.js';
+import {tailwindConfig, hexToRGB} from '../utils/utils.js';
 
 const chartData = {
     labels: [
@@ -56,6 +56,27 @@ const chartData = {
 };
 
 const ForecastPage = () => {
+    useEffect(() => {
+        // Define an async function to fetch data from API
+        const fetchData = async () => {
+            try {
+                // Make API request using Axios
+                const response = await axios.get('https://8c9b-35-230-164-80.ngrok-free.app/create_model');
+
+                // Update state with fetched data
+                console.log(response.data);
+//                setLoading(false);
+            } catch (error) {
+                // Handle error
+//                setError(error);
+//                setLoading(false);
+            }
+        };
+
+        // Call the async function to fetch data
+        fetchData();
+    }, []);
+
     return (
         <div>
             <Header heading="Forecast"/>

@@ -5,8 +5,7 @@ import {useEffect} from "react";
 
 const navigation = [
     {name: 'Home', href: '/', current: true},
-    {name: 'Historical Figures', href: 'historical', current: false},
-    {name: 'Forecasts', href: 'forecast', current: false},
+    {name: 'Create Forecasts', href: 'forecast', current: false},
     {name: 'Guide & Feature Info', href: 'guide', current: false},
 ]
 
