@@ -1,9 +1,10 @@
 import {Disclosure} from '@headlessui/react'
 import {Bars3Icon, XMarkIcon} from '@heroicons/react/24/outline'
 import Logo from "../../assets/images/logo.png"
+import {useEffect} from "react";
 
 const navigation = [
-    {name: 'Home', href: '', current: true},
+    {name: 'Home', href: '/', current: true},
     {name: 'Historical Figures', href: 'historical', current: false},
     {name: 'Forecasts', href: 'forecast', current: false},
     {name: 'Guide & Feature Info', href: 'guide', current: false},
@@ -14,11 +15,43 @@ function classNames(...classes) {
 }
 
 export default function Navbar() {
+
+
+    useEffect(() => {
+        // Update the 'current' property in the navigation array
+        const handleHrefChange = (newHref) => {
+            navigation.forEach(navItem => {
+                if(newHref === "")
+                    newHref = "/"
+                
+                navItem.current = navItem.href === newHref;
+            });
+
+            // You can perform additional actions here after updating the navigation array
+            // For example, you can call a function or dispatch an action to update the UI
+        };
+
+        // Add an event listener to window.location to detect changes in the href
+        const handleLocationChange = () => {
+            const newHref = window.location.pathname.substr(1); // Get the new href value
+            handleHrefChange(newHref); // Call the handleHrefChange function with the new href
+        };
+        window.addEventListener('popstate', handleLocationChange);
+
+        // Call handleHrefChange initially with the current href value
+        handleHrefChange(window.location.pathname.substr(1));
+
+        // Clean up the event listener on component unmount
+        return () => {
+            window.removeEventListener('popstate', handleLocationChange);
+        };
+    }, []);
+
     return (
         <Disclosure as="nav" className="bg-white-800">
             {({open}) => (
                 <>
-                    <div className="mx-auto shadow-md max-w-7xl px-2 sm:px-6 lg:px-8">
+                    <div className="mx-auto shadow-md px-2 sm:px-6 lg:px-8">
                         <div className="relative flex h-16 items-center justify-between">
                             <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
                                 {/* Mobile menu button*/}
