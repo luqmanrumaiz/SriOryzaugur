@@ -13,7 +13,7 @@ const GuideAndInfoPage = () => {
                 <div
                     className="px-4 py-10 max-w-3xl mx-auto sm:px-6 sm:py-12 lg:max-w-4xl lg:py-16 lg:px-8 xl:max-w-6xl">
                     <article class="prose lg:prose-xl">
-                        <h1>What is the purpose of this project?</h1>
+                        <h1>What is the purpose of this project 🤔?</h1>
                         <p>
                             The goal of SriOryzaugur is to provide a platform to accurately forecast rice and paddy prices in Sri Lanka 
                         </p>
