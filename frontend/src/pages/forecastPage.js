@@ -1,9 +1,16 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
+import axios from 'axios';
 
 import LineChart from '../components/charts/lineChart.js'
 import Header from '../components/pages/header.js'
-import {tailwindConfig, hexToRGB, formatValue} from '../utils/utils.js';
-import {Colors} from '../values/colors.js';
+import {tailwindConfig, hexToRGB} from '../utils/utils.js';
+import Select from 'react-select'
+
+const colourOptions = [
+    {value: 'chocolate', label: 'Chocolate'},
+    {value: 'strawberry', label: 'Strawberry'},
+    {value: 'vanilla', label: 'Vanilla'}
+]
 
 const chartData = {
     labels: [
@@ -56,10 +63,94 @@ const chartData = {
 };
 
 const ForecastPage = () => {
+    useEffect(() => {
+        // Define an async function to fetch data from API
+        const fetchData = async () => {
+            try {
+                // Make API request using Axios
+                const response = await axios.get('https://8c9b-35-230-164-80.ngrok-free.app/create_model');
+
+                // Update state with fetched data
+                console.log(response.data);
+//                setLoading(false);
+            } catch (error) {
+                // Handle error
+//                setError(error);
+//                setLoading(false);
+            }
+        };
+
+        // Call the async function to fetch data
+        fetchData();
+    }, []);
+
     return (
-        <div>
-            <Header heading="Forecast"/>
+        <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+            <Header heading="Lets Start Forecasting 📈"/>
             <main>
+                {/* Comment for using code from tailwindcomponents.com */}
+                {/* Author: GalihRendis (https://tailwindcomponents.com/u/galihrendis) */}
+                {/* Date: N.A */}
+                {/* Title: Form 4 Component */}
+                {/* Code version: tailwindcss@2.2.4 */}
+                {/* Type: React Component */}
+                {/* Web address: https://tailwindcomponents.com/component/form-4 */}
+
+                <section className="max-w-4xl p-6 mx-auto bg-yellow-600 rounded-md shadow-md dark:bg-gray-800 mt-10">
+                    <h1 className="text-xl font-bold text-white dark:text-white">Please enter the below fields to create
+                        your forecasting model</h1>
+                    <form>
+                        <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
+                            <div>
+                                <label className="text-white dark:text-gray-200" htmlFor="date_from">Date From
+                                    Start</label>
+                                <input id="date_from" type="month" min="2020-01" max="2023-12" placeholder="YYYY-MM"
+                                       required
+                                       className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring"/>
+                            </div>
+                            <div>
+                                <label className="text-white dark:text-gray-200" htmlFor="date_to">Date to End 🔚</label>
+                                <input id="date_to" type="month" min="2020-01" max="2023-12" placeholder="YYYY-MM"
+                                       required
+                                       className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring"/>
+                            </div>
+
+                            <div>
+                                <label className="text-white dark:text-gray-200" htmlFor="emailAddress">Email
+                                    Address</label>
+                                <input id="emailAddress" type="email"
+                                       className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring"/>
+                            </div>
+
+                            <div>
+                                <label className="text-white dark:text-gray-200" htmlFor="password">Password</label>
+                                <input id="password" type="password"
+                                       className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring"/>
+                            </div>
+
+                            <div>
+                                <label className="text-white dark:text-gray-200" htmlFor="passwordConfirmation">Password
+                                    Confirmation</label>
+                                <Select
+                                    defaultValue={[colourOptions[2], colourOptions[3]]}
+                                    isMulti
+                                    name="colors"
+                                    options={colourOptions}
+                                    className="basic-multi-select"
+                                    classNamePrefix="select"
+                                /> {/*<input id="passwordConfirmation" type="password"*/}
+                                {/*       className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring" />*/}
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end mt-6">
+                            <button
+                                className="px-6 py-2 leading-5 text-white transition-colors duration-200 transform bg-pink-500 rounded-md hover:bg-pink-700 focus:outline-none focus:bg-gray-600">Save
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
                 <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
                     <div className="px-4 py-6 sm:px-0">
                         <div className="h-96 rounded-lg border-4 border-dashed border-green-600 p-10">
