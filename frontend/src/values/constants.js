@@ -16,7 +16,7 @@ export const SERIES_OPTIONS = [
     },
     {
         value: {
-            metadata: {district: 'anuradhapura'},
+            metadata: {district: 'anuradhapura'}, 
             collection: 'producer_prices',
             target: 'producer_price'
         },
