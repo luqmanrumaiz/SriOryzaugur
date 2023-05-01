@@ -1,158 +1,152 @@
 import React, {useEffect, useRef, useState} from 'react';
-
 import Header from '../components/pages/header.js'
 import Select from 'react-select'
-import Papa from "papaparse";
-
 import {SERIES_OPTIONS} from '../values/constants';
+import Spinner from "../components/forecast/spinner";
+import LineChart from '../components/charts/lineChart.js'
+import {tailwindConfig, hexToRGB} from '../utils/utils.js';
 
 const ForecastPage = () => {
 
     const [step, setStep] = useState(1);
-    const [uploadDataError, setUploadDataError] = useState(false)
-    const [uploadDataErrorText, setUploadDataErrorText] = useState("There was an error when importing the data you provided.")
-    const [selectedOptions, setSelectedOptions] = useState(["Price"]);
+
+    const [selectedOptions, setSelectedOptions] = useState(SERIES_OPTIONS[0]);
+
+    const [allowedDateRange, setAllowedDateRange] = useState(["1996-01", "2022-12"])
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
+
     const [generatingForecastInProgress, setGeneratingForecastInProgress] = useState(false)
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(true);
 
-    const fileInputRef = useRef(null);
-
-    const handleChange = () => {
-        if (step === 1) {
-//            const selectedFiles = fileInputRef.current.files;
-//            if (selectedFiles.length === 0) {
-//                alert("No file selected");
-//            } else {
-//                // Access the selected file(s) using selectedFiles property
-//                // Perform further actions with the file(s) here
-//                alert(`File(s) selected: ${selectedFiles.length}`);
-//            }
-        }
+    const chartData = {
+        labels: [
+            '12-01-2020', '01-01-2021', '02-01-2021',
+            '03-01-2021', '04-01-2021', '05-01-2021',
+            '06-01-2021', '07-01-2021', '08-01-2021',
+            '09-01-2021', '10-01-2021', '11-01-2021',
+            '12-01-2021', '01-01-2022', '02-01-2022',
+            '03-01-2022', '04-01-2022', '05-01-2022',
+            '06-01-2022', '07-01-2022', '08-01-2022',
+            '09-01-2022', '10-01-2022', '11-01-2022',
+            '12-01-2022', '01-01-2023', '02-01-2023',
+            '03-01-2023', '04-01-2023', '05-01-2023',
+            '06-01-2023', '07-01-2023',
+            ],
+        datasets: [
+            {
+                data: [
+                    622, 622, 426, 471, 365, 365, 238,
+                    324, 288, 206, 324, 324, 500, 409,
+                    409, 273, 232, 273, 500, 570, 767,
+                    808, 685, 767, 685, 685,
+                    ],
+                fill: true,
+                backgroundColor: `rgba(${hexToRGB(tailwindConfig().theme.colors.green[600])}, 0.08)`,
+                borderColor: tailwindConfig().theme.colors.green[500],
+                borderWidth: 2,
+                tension: 0,
+                pointRadius: 0,
+                pointHoverRadius: 3,
+                pointBackgroundColor: tailwindConfig().theme.colors.green[500],
+                clip: 20,
+            },
+            {
+              data: [
+                null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null,
+                null, null, null, null, 767, 570, 767,
+                808, 685, 767, 685, 685,
+              ],
+                fill:true,
+                backgroundColor: `rgba(${hexToRGB(tailwindConfig().theme.colors.yellow[600])}, 0.08)`,
+                borderColor: tailwindConfig().theme.colors.yellow[500],
+                borderWidth: 2,
+                tension: 0,
+                pointRadius: 0,
+                pointHoverRadius: 3,
+                pointBackgroundColor: tailwindConfig().theme.colors.red[500],
+                clip: 20,
+            }
+        ],
     };
 
     const handleNext = () => {
-        handleChange()
         setStep(step + 1);
     };
 
     const handlePrev = () => {
-        handleChange()
         setStep(step - 1);
     };
-
-    const handleSelectChange = (selectedOptions) => {
-        // Update the state with the selected options
-        console.log(selectedOptions)
-
-        let optionLabels = []
-        selectedOptions.forEach(getLabelsFromOptions);
-
-        function getLabelsFromOptions(item, index) {
-            optionLabels.push(item.label)
-        }
-
-        console.log(optionLabels)
-
-        setSelectedOptions(optionLabels);
-    };
-
-    const commonConfig = {delimiter: ","};
 
     return (
         <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
             <Header heading="Lets Start Forecasting 📈"/>
             <main>
-                {/* Comment for using code from tailwindcomponents.com */}
-                {/* Author: GalihRendis (https://tailwindcomponents.com/u/galihrendis) */}
-                {/* Date: N.A */}
-                {/* Title: Form 4 Component */}
-                {/* Code version: tailwindcss@2.2.4 */}
-                {/* Type: React Component */}
-                {/* Web address: https://tailwindcomponents.com/component/form-4 */}
-
                 <section
                     className="max-w-9xl p-6 mx-auto bg-yellow-600 rounded-md shadow-md mt-5 flex flex-col h-full">
-                    <h1 className="text-xl font-bold text-white dark:text-white mb-5">Please enter the below fields to
+                    {!isSubmitted && !isLoading && <>
+
+                    <h1 className="text-xl font-bold text-white mb-5">Please enter the below
+                        fields to
                         create
-                        your forecasting model</h1>
+                        your forecasting model
+                    </h1>
+
                     <form
                         onSubmit={
                             async (e) => {
-                        const requestOptions = {
-                            method: 'GET',
-                            headers: {'Content-Type': 'application/json'},
-                        };
-                        let response = await fetch("http://127.0.0.1:5000/long-process",
-                                                   requestOptions)
+                                e.preventDefault()
+                                setIsLoading(true);
+                                console.log(isLoading)
+                                const requestOptions = {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({
+                                        'selected_series' : selectedOptions,
+                                        'date_from': dateFrom,
+                                        'date_to': dateTo
+                                    })
+                                };
+
+                                let response = await fetch("http://127.0.0.1:5000/generate-forecasts",
+                                                           requestOptions)
 
                                 const jsonData = await response.json();
-                        console.log(jsonData);
+                                setIsLoading(false)
+                                setIsSubmitted(true)
+                                console.log(jsonData);
                             }
                         }
                         className="bg-white shadow-md rounded px-8 py-6">
-                        {step === 2 && (
+                        {step === 1 && (
                             <div>
-                                <h2 className="text-2xl font-semibold mb-4">2️⃣ Import Additional Data</h2>
+                                <h2 className="text-2xl font-semibold mb-3">1️⃣ Select Series</h2>
                                 <div
                                     className="bg-blue-100 border-t border-b border-blue-500 text-blue-700 px-4 py-3 mb-4"
                                     role="alert">
-                                    <p className="font-bold">Make sure you enter the additional rows in a csv
-                                        file. <br></br>If you do not wish to import any additional data, you may
-                                        continue without
-                                        importing a CSV with additional rows</p>
+                                    <p className="font-bold">Select below the exogenous factors that you'd wish
+                                        to be
+                                        used along with rice prices when forecasting.
+                                        <br></br>
+                                        If you wish to forecast prices using soley the retail price of rice
+                                        (Univariate),
+                                        then skip to the next part of the form
+                                    </p>
                                 </div>
-                                {uploadDataError && (
-                                    <div
-                                        className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-3"
-                                        role="alert">
-                                        <strong className="font-bold">{uploadDataErrorText}!</strong>
-                                    </div>
-                                )
-                                }
-                                <div className="mb-4">
-                                    <input
-                                        type="file"
-                                        accept=".csv"
-                                        onChange={async (e) => {
-                                            const files = e.target.files;
-                                            if (files) {
-                                                Papa.parse(files[0], {
-                                                        ...commonConfig,
-                                                        complete: async function (results) {
-                                                            const requestOptions = {
-                                                                method: 'POST',
-                                                                headers: {'Content-Type': 'application/json'},
-                                                                body: JSON.stringify({
-                                                                    "uploaded_file_data": results.data.slice(0, -1),
-                                                                    "selected_series": selectedOptions
-                                                                })
-                                                            };
-                                                            let response = await fetch("http://127.0.0.1:5000/validate-additional-data",
-                                                                requestOptions)
-
-                                                            const jsonData = await response.json();
-                                                            console.log(jsonData);
-
-                                                            setUploadDataError(!jsonData.success)
-                                                            if (!jsonData.success) {
-                                                                console.log(jsonData.message)
-                                                                setUploadDataErrorText(jsonData.message)
-                                                            }
-                                                        }
-                                                    }
-                                                )
-                                            }
-                                        }}
-                                    />
-                                </div>
+                                <Select
+                                    defaultValue={[SERIES_OPTIONS[0]]}
+                                    isMulti
+                                    name="series"
+                                    options={SERIES_OPTIONS}
+                                    onChange={(selectedOptions) => setSelectedOptions(selectedOptions)}
+                                    className="basic-multi-select"
+                                    classNamePrefix="select"
+                                />
                                 <button
-                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 focus:outline-none focus:shadow-outline"
-                                    type="button"
-                                    onClick={handlePrev}
-                                >
-                                    Previous
-                                </button>
-                                <button
-                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4"
                                     type="button"
                                     onClick={handleNext}
                                 >
@@ -160,22 +154,34 @@ const ForecastPage = () => {
                                 </button>
                             </div>
                         )}
-                        {step === 3 && (
+                        {step === 2 && (
                             <div>
-                                <h2 className="text-2xl font-semibold mb-4">3️⃣
-                                    Date Range</h2>
+                                <h2 className="text-2xl font-semibold mb-4">2️⃣ Date Range</h2>
+                                <div
+                                    className="bg-blue-100 border-t border-b border-blue-500 text-blue-700 px-4 py-3 mb-4"
+                                    role="alert">
+                                    <p className="font-bold">You may enter dates ranginng
+                                        from {allowedDateRange[0]} to {allowedDateRange[1]}.
+                                    </p>
+                                </div>
                                 <div className="mb-5">
                                     <label htmlFor="date_from">Date From
                                         Start</label>
-                                    <input id="date_from" type="month" min="2020-01" max="2023-12" placeholder="YYYY-MM"
+                                    <input id="date_from" type="month" min="1996-01" max="2022-12"
+                                           placeholder="YYYY-MM"
                                            required
-                                           className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring"/>
+                                           value={dateFrom}
+                                           onChange={(e) => setDateFrom(e.target.value)}
+                                           className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"/>
                                 </div>
                                 <div className="mb-5">
                                     <label htmlFor="date_to">Date to End 🔚</label>
-                                    <input id="date_to" type="month" min="2020-01" max="2023-12" placeholder="YYYY-MM"
+                                    <input id="date_to" type="month" min="1996-01" max="2022-12"
+                                           placeholder="YYYY-MM"
                                            required
-                                           className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md  dark:text-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring"/>
+                                           value={dateTo}
+                                           onChange={(e) => setDateTo(e.target.value)}
+                                           className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"/>
                                 </div>
                                 <button
                                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 focus:outline-none focus:shadow-outline"
@@ -193,7 +199,8 @@ const ForecastPage = () => {
                                         <>
                                             <svg aria-hidden="true" role="status"
                                                  className="inline w-4 h-4 mr-3 text-white animate-spin"
-                                                 viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                 viewBox="0 0 100 101" fill="none"
+                                                 xmlns="http://www.w3.org/2000/svg">
                                                 <path
                                                     d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
                                                     fill="#E5E7EB"/>
@@ -210,34 +217,58 @@ const ForecastPage = () => {
                                 </button>
                             </div>
                         )}
-                        {step === 1 && (
-                            <div>
-                                <h2 className="text-2xl font-semibold mb-3">1️⃣ Select Series</h2>
-                                <div
-                                    className="bg-blue-100 border-t border-b border-blue-500 text-blue-700 px-4 py-3 mb-4"
-                                    role="alert">
-                                    <p className="font-bold">Select below the exogenous factors that you'd wish to be
-                                        used along with rice prices when forecasting.</p>
-                                </div>
-                                <Select
-                                    defaultValue={[SERIES_OPTIONS[0]]}
-                                    isMulti
-                                    name="series"
-                                    options={SERIES_OPTIONS}
-                                    onChange={handleSelectChange}
-                                    className="basic-multi-select"
-                                    classNamePrefix="select"
-                                />
-                                <button
-                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4"
-                                    type="button"
-                                    onClick={handleNext}
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        )}
                     </form>
+                    </>}
+                    {isLoading && (
+                        <div className="absolute inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
+                            <div className="flex flex-col items-center bg-white p-4 rounded-md shadow-md">
+                                <Spinner />
+                                <p className="mt-4 text-lg text-gray-700">Processing your request...</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {!isLoading && isSubmitted && (
+                        <>
+                        <div className="shadow-md rounded px-8 py-6 bg-white">
+                            <div className="h-96 rounded-lg border-4 border-dashed border-green-600 p-10">
+                                <LineChart data={chartData} width={595} height={248}/>
+                            </div>
+                            <div className="mt-6 grid grid-cols-2 gap-6">
+                                <div className="px-4 py-6 bg-white rounded-lg shadow-md">
+                                    <h2 className="text-lg font-medium text-gray-900 mb-4">Metrics</h2>
+                                    <div className="flex items-center mb-2">
+                                        <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                                            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-3">
+                                            <p className="text-sm font-medium text-gray-900">MAPE</p>
+                                            <p className="text-sm font-medium text-gray-500">12.3%</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center mb-2">
+                                        <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center">
+                                            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-3">
+                                            <p className="text-sm font-medium text-gray-900">SMAPE</p>
+                                            <p className="text-sm font-medium text-gray-500">8.9%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="px-4 py-6 bg-white rounded-lg shadow-md">
+                                    <h2 className="text-lg font-medium text-gray-900 mb-4">Forecast</h2>
+                                    <p className="text-gray-600 mb-2">Lorem ipsum dolor sit amet consectetur adipisicing elit. Incidunt, quisquam.</p>
+                                    {/* add forecast components here */}
+                                </div>
+                            </div>
+                        </div>
+                        </>
+                    )}
                 </section>
             </main>
         </div>
