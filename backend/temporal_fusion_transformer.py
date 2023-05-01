@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import datetime
+from dateutil.relativedelta import relativedelta
 
 import lightning.pytorch as pl
 
@@ -91,7 +93,6 @@ class TFT:
         )
 
     def create_dataloaders(self):
-        # create dataloaders for model
         self.train_dataloader = self.training.to_dataloader(
             train=True, batch_size=self.batch_size, num_workers=0
         )
@@ -170,6 +171,13 @@ class TFT:
         self.forecasts = self.tft.predict(self.val_dataloader, return_x=True, return_y=True,
                                           trainer_kwargs=dict(accelerator="cpu"))
 
+        date = self.data.iloc[-1]['ds']
+        predicted_dates = []
+
+        for i in range(self.max_prediction_length):
+            date += relativedelta(months=1)
+            predicted_dates.append(date)
+
         metrics = {
             'MAE': MAE()(self.forecasts.output, self.forecasts.y),
             'MAPE': MAPE()(self.forecasts.output, self.forecasts.y),
@@ -177,7 +185,14 @@ class TFT:
             'RMSE': RMSE()(self.forecasts.output, self.forecasts.y)
         }
 
-        return self.tft.predict(self.val_dataloader), metrics
+        forecasts = self.forecasts.y[0].numpy().tolist()[0]
+        print(forecasts)
+        forecasts = [float(x) for x in forecasts]
+        print(forecasts)
+        forecasts = list(map(lambda x: round(x, 2), forecasts))
+        print(forecasts)
+
+        return forecasts, [dt.strftime('%Y-%m-%d') for dt in predicted_dates], metrics
 
     def interpret_model(self):
         interpretation = self.tft.interpret_output(self.forecasts.output, reduction="sum")
