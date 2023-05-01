@@ -9,13 +9,12 @@ from temporal_fusion_transformer import TFT
 from pytorch_forecasting import ImplicitQuantileNetworkDistributionLoss
 
 from utils import classify_yaha_mala, retrieve_ts_data
+import constants
 
 import warnings
-
 warnings.filterwarnings('ignore')
 
-CONNECTION_STRING = 'mongodb+srv://srioryzaugur-admin:QCRTnE40At3naapw@timeseriesdata.xtliqai.mongodb.net/'
-client = MongoClient(CONNECTION_STRING)
+client = MongoClient(constants.CONNECTION_STRING)
 
 app = Flask(__name__)
 CORS(app)
@@ -69,7 +68,7 @@ def generate_forecasts():
             return json.dumps({'success': True, 'message': 'HEY'}), 200
 
     except Exception as e:
-        logging.error('An error occurred: %s ‼️', str(e), exc_info=True)
+        logging.error('An error occurred: %s ‼️ ', str(e), exc_info=True)
         return json.dumps({'success': False, 'message': str(e)}), 500
 
 

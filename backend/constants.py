@@ -5,3 +5,5 @@ METADATA_FOR_COLLECTION = {
     "monetary_aggregates": "monetary_aggregate_type",
     "paddy_production": "season"
 }
+
+CONNECTION_STRING = 'mongodb+srv://srioryzaugur-admin:QCRTnE40At3naapw@timeseriesdata.xtliqai.mongodb.net/'
