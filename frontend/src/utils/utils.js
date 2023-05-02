@@ -21,9 +21,15 @@ export const hexToRGB = (h) => {
     return `${+r},${+g},${+b}`;
 };
 
-export const formatValue = (value) => Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumSignificantDigits: 3,
-    notation: 'compact',
-}).format(value);
+export const formatDate = (dateValue) => {
+    const date = new Date(dateValue);
+    return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+    });
+};
+
+export const formatLKR = (value) => {
+    return `₨ ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};

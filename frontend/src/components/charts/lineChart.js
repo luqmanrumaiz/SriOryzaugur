@@ -4,7 +4,7 @@ import {
 } from 'chart.js';
 import 'chartjs-adapter-moment';
 
-import { tailwindConfig, formatValue } from '../../utils/utils.js';
+import { tailwindConfig, formatDate, formatLKR } from '../../utils/utils.js';
 
 Chart.register(LineController, LineElement, Filler, PointElement, LinearScale, TimeScale, Tooltip);
 
@@ -18,7 +18,6 @@ function LineChart({
 
     useEffect(() => {
         const ctx = canvas.current;
-        // eslint-disable-next-line no-unused-vars
         const chart = new Chart(ctx, {
             type: 'line',
             data: data,
@@ -46,8 +45,12 @@ function LineChart({
                 plugins: {
                     tooltip: {
                         callbacks: {
-                            title: () => false, // Disable tooltip title
-                            label: (context) => formatValue(context.parsed.y),
+                            title: () => false,
+                            label: (context) => {
+                                const date = formatDate(context.parsed.x);
+                                const value = formatLKR(context.parsed.y);
+                                return `${date}: ${value}`;
+                            },
                         },
                     },
                     legend: {
