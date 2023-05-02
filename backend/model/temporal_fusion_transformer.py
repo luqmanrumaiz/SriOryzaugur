@@ -102,7 +102,6 @@ class TFT:
 
     def calculate_baseline_error(self):
         baseline_predictions = Baseline().predict(self.val_dataloader, return_y=True)
-        print(f"Baseline MAE: {MAE()(baseline_predictions.output, baseline_predictions.y)}")
         self.baseline_predictions = baseline_predictions
 
     def optimize_hyperparameters(self, n_trials=200, max_epochs=50, use_learning_rate_finder=False):
@@ -185,12 +184,12 @@ class TFT:
             'RMSE': RMSE()(self.forecasts.output, self.forecasts.y)
         }
 
-        forecasts = self.forecasts.y[0].numpy().tolist()[0]
-        print(forecasts)
+        for key, val in metrics.items():
+            metrics[key] = round(val.item(), 2)
+
+        forecasts = self.forecasts.output[0].numpy().tolist()
         forecasts = [float(x) for x in forecasts]
-        print(forecasts)
         forecasts = list(map(lambda x: round(x, 2), forecasts))
-        print(forecasts)
 
         return forecasts, [dt.strftime('%Y-%m-%d') for dt in predicted_dates], metrics
 

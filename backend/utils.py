@@ -1,6 +1,7 @@
 import pandas as pd
 import constants
 
+
 def classify_yaha_mala(row):
     month = row['month']
 
@@ -8,6 +9,7 @@ def classify_yaha_mala(row):
         return 'maha'
     else:
         return 'yala'
+
 
 def retrieve_ts_data(client, selected_series, date_from, date_to):
     dates = pd.date_range(start=date_from, end=date_to, freq='MS')
@@ -18,7 +20,6 @@ def retrieve_ts_data(client, selected_series, date_from, date_to):
         collection = value['collection']
         target = value['target']
         col_name = target
-
         db = client['historical_db']
         has_metadata = collection in constants.METADATA_FOR_COLLECTION and value.get('metadata') is not None
 
@@ -42,3 +43,25 @@ def retrieve_ts_data(client, selected_series, date_from, date_to):
         df = pd.merge(df, temp_df, on='date')
 
     return df
+
+
+def get_forecast_summary(forecasts, forecasted_dates):
+    forecast_df = pd.DataFrame({
+        'value': forecasts,
+        'date': forecasted_dates
+    })
+
+    start_value = forecast_df.iloc[0]['value']
+    end_value = forecast_df.iloc[-1]['value']
+
+    forecast_growth = (end_value - start_value) / start_value
+    annualized_growth = (1 + forecast_growth) ** (12 / len(forecast_df)) - 1
+
+    forecast_df['quarter'] = pd.PeriodIndex(forecast_df['date'], freq='Q')
+
+    quarterly_values = forecast_df.groupby('quarter').sum()
+    quarterly_growth = quarterly_values.pct_change().dropna()
+    highest_growth_quarter = quarterly_growth.idxmax()[0].strftime('%B')
+
+    return f"The forecast predicts a {annualized_growth:.1%} increase over the next 12 months, " \
+           f"with the largest growth expected in {highest_growth_quarter}."

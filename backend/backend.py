@@ -1,20 +1,26 @@
+import argparse
 from flask import Flask, request
 from flask_cors import CORS
+from pyngrok import ngrok
 import json
 import logging
 import pandas as pd
 
 from pymongo import MongoClient
 
-from temporal_fusion_transformer import TFT
+from model.temporal_fusion_transformer import TFT
 from pytorch_forecasting import ImplicitQuantileNetworkDistributionLoss
 
-from utils import classify_yaha_mala, retrieve_ts_data
+from utils import classify_yaha_mala, retrieve_ts_data, get_forecast_summary
 import constants
 
 import warnings
 
 warnings.filterwarnings('ignore')
+
+parser = argparse.ArgumentParser(description='Run Flask app with or without Ngrok')
+parser.add_argument('--ngrok', action='store_true', help='Run with Ngrok')
+args = parser.parse_args()
 
 client = MongoClient(constants.CONNECTION_STRING)
 
@@ -53,20 +59,10 @@ def generate_forecasts():
             tft_model.create_dataloaders()
             logging.info('Successfully prepared ts obj. and dataloaders')
 
-            # tft_model.optimize_hyperparameters(n_trials=2, max_epochs=3, use_learning_rate_finder=False)
+            tft_model.optimize_hyperparameters(n_trials=2, max_epochs=3, use_learning_rate_finder=False)
             logging.info('Successfully optimized hyperparameters')
 
-            hyperparams = {
-                "gradient_clip_val": 0.821352550115402,
-                "hidden_size": 113,
-                "dropout": 0.1646939509327954,
-                "hidden_continuous_size": 46,
-                "attention_head_size": 2,
-                "learning_rate": 0.0016895193813204448
-            }
-
-            tft_model.configure_network_and_trainer(hyperparams=hyperparams,
-                                                    loss=ImplicitQuantileNetworkDistributionLoss(), max_epochs=5)
+            tft_model.configure_network_and_trainer(loss=ImplicitQuantileNetworkDistributionLoss())
             logging.info('Successfully configured trainer, model is ready for training!')
 
             tft_model.fit_network()
@@ -75,28 +71,7 @@ def generate_forecasts():
             model_results = tft_model.evaluate()
             forecasts = model_results[0]
             forecasted_dates = model_results[1]
-
-            forecast_df = pd.DataFrame({
-                'value': forecasts,
-                'date': forecasted_dates
-            })
-
-            start_value = forecast_df.iloc[0]['value']
-            end_value = forecast_df.iloc[-1]['value']
-
-            forecast_growth = (end_value - start_value) / start_value
-            annualized_growth = (1 + forecast_growth) ** (12 / len(forecast_df)) - 1
-
-            forecast_df['quarter'] = pd.PeriodIndex(forecast_df['date'], freq='Q')
-
-            quarterly_values = forecast_df.groupby('quarter').sum()
-            quarterly_growth = quarterly_values.pct_change().dropna()
-            highest_growth_quarter = quarterly_growth.idxmax()[0].strftime('%B')
-
-            forecast_summary = f"The forecast predicts a {annualized_growth:.1%} increase over the next 12 months, " \
-                               f"with the largest growth expected in {highest_growth_quarter}."
-
-            print(forecast_summary)
+            metrics = model_results[2]
 
             return json.dumps(
                 {
@@ -104,7 +79,8 @@ def generate_forecasts():
                     'dates': [dt.strftime('%Y-%m-%d') for dt in df['date'].tolist()] + forecasted_dates,
                     'actuals': df.iloc[:, 1].tolist(),
                     'forecasts': forecasts,
-                    'summary': forecast_summary
+                    'summary': get_forecast_summary(forecasts, forecasted_dates),
+                    'metrics': metrics
                 }), 200
 
         elif selected_series is None:
@@ -122,9 +98,20 @@ def generate_forecasts():
         return json.dumps({'success': False, 'message': str(e)}), 500
 
 
-def run_flask_app():
-    app.run(debug=True, host='0.0.0.0', port=5000)
-
-
 if __name__ == '__main__':
-    run_flask_app()
+    if args.ngrok:
+        try:
+            ngrok.set_auth_token(constants.NGROK_AUTH_TOKEN)
+            http_tunnel = ngrok.connect(5000)
+
+            print(f" * Running on {http_tunnel}")
+
+        except KeyboardInterrupt:
+            print(" Shutting down server.")
+
+            ngrok.kill()
+
+        app.run(port=5000)
+
+    else:
+        app.run(port=5000, debug=True)
