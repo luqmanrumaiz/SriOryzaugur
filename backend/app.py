@@ -4,7 +4,6 @@ from flask_cors import CORS
 from pyngrok import ngrok
 import json
 import logging
-import pandas as pd
 
 from pymongo import MongoClient
 
@@ -15,7 +14,6 @@ from utils import classify_yaha_mala, retrieve_ts_data, get_forecast_summary
 import constants
 
 import warnings
-
 warnings.filterwarnings('ignore')
 
 parser = argparse.ArgumentParser(description='Run Flask app with or without Ngrok')

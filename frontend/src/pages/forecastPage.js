@@ -32,27 +32,23 @@ const ForecastPage = () => {
         labels: dateLabels,
         datasets: [
             {
-                data: actuals,
-                fill: true,
-                backgroundCor: `rgba(${hexToRGB(tailwindConfig().theme.colors.green[600])}, 0.08)`,
+                data: actuals.slice(0, -forecasts.length),
+                borderColor: tailwindConfig().theme.colors.orange[500],
+                borderWidth: 2,
+                tension: 0,
+                pointRadius: 0,
+                pointHoverRadius: 3,
+                pointBackgroundColor: tailwindConfig().theme.colors.orange[500],
+                clip: 20,
+            },
+            {
+                data: actuals.slice(forecasts.length),
                 borderColor: tailwindConfig().theme.colors.green[500],
                 borderWidth: 2,
                 tension: 0,
                 pointRadius: 0,
                 pointHoverRadius: 3,
                 pointBackgroundColor: tailwindConfig().theme.colors.green[500],
-                clip: 20,
-            },
-            {
-                data: forecasts,
-                fill: true,
-                backgroundColor: `rgba(${hexToRGB(tailwindConfig().theme.colors.yellow[600])}, 0.08)`,
-                borderColor: tailwindConfig().theme.colors.yellow[500],
-                borderWidth: 2,
-                tension: 0,
-                pointRadius: 0,
-                pointHoverRadius: 3,
-                pointBackgroundColor: tailwindConfig().theme.colors.yellow[500],
                 clip: 20,
             }
         ],
@@ -66,9 +62,15 @@ const ForecastPage = () => {
                 day: "2-digit"
             }))
         }
-        chartData.datasets[0].data = actuals
-        chartData.datasets[1].data = [...new Array(actuals.length).fill(null), ...forecasts]
 
+        chartData.datasets[0].data = actuals;
+
+        let forecastedValues = forecasts
+        let actualsTrimmed = actuals.slice(0, -forecasts.length)
+        for (let value in actualsTrimmed) {
+            forecastedValues.unshift(null);
+        }
+        chartData.datasets[1].data = forecastedValues
     }, [forecasts, actuals, dateLabels]);
 
     const handleNext = () => {
@@ -249,6 +251,9 @@ const ForecastPage = () => {
                                         <p className="text-gray-600 mb-2">{forecastSummary}</p>
                                     </div>
                                 </div>
+                                <button class="w-full bg-green-700 hover:bg-yellow-700 duration-150 ease-in-out text-white font-bold py-2 px-4 rounded">
+                                    Forecast Again
+                                </button>
                             </div>
                         </>
                         )}

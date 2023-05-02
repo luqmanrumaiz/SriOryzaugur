@@ -46,22 +46,28 @@ def retrieve_ts_data(client, selected_series, date_from, date_to):
 
 
 def get_forecast_summary(forecasts, forecasted_dates):
+    # Create DataFrame with forecasted values and dates
     forecast_df = pd.DataFrame({
         'value': forecasts,
         'date': forecasted_dates
     })
 
+    # Compute start and end values for forecast period
     start_value = forecast_df.iloc[0]['value']
     end_value = forecast_df.iloc[-1]['value']
 
+    # Compute overall growth rate for forecast period and annualized growth rate
     forecast_growth = (end_value - start_value) / start_value
     annualized_growth = (1 + forecast_growth) ** (12 / len(forecast_df)) - 1
 
+    # Group forecast values by quarter and compute quarterly growth rates
     forecast_df['quarter'] = pd.PeriodIndex(forecast_df['date'], freq='Q')
-
     quarterly_values = forecast_df.groupby('quarter').sum()
     quarterly_growth = quarterly_values.pct_change().dropna()
-    highest_growth_quarter = quarterly_growth.idxmax()[0].strftime('%B')
 
-    return f"The forecast predicts a {annualized_growth:.1%} increase over the next 12 months, " \
-           f"with the largest growth expected in {highest_growth_quarter}."
+    # Find quarter with the highest growth rate and format summary string
+    highest_growth_quarter = quarterly_growth.idxmax()[0].strftime('%B')
+    summary = f"The forecast predicts a {annualized_growth:.1%} increase over the next 12 months, " \
+              f"with the largest growth expected in {highest_growth_quarter}."
+
+    return summary
