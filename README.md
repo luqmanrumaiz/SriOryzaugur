@@ -1,4 +1,4 @@
-# 📉 SriOryzaugur 🌾
+# 📉🌾 SriOryzaugur 
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/51841dd8-a090-4fae-90c9-be82b3adca7b/deploy-status)](https://app.netlify.com/sites/srioryazaugur/deploys)
 [![CodeFactor](https://www.codefactor.io/repository/github/luqmanrumaiz/srioryzaugur/badge?s=e1db394372d5aa2249d69cb22b7d922a1bace421)](https://www.codefactor.io/repository/github/luqmanrumaiz/srioryzaugur)
