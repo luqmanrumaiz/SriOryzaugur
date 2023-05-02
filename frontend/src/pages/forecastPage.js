@@ -100,17 +100,12 @@ const ForecastPage = () => {
                 requestOptions
             );
             const jsonData = await response.json();
-            console.log(jsonData['metrics']);
-            Object.entries(jsonData['metrics']).map(([key, value]) => {
-                console.log(key);
-                console.log(value);
-            })
+
             setActuals(jsonData['actuals'])
             setForecasts(jsonData['forecasts'])
             setDateLabels(jsonData['dates'])
             setForecastSummary(jsonData['summary']);
             setMetrics(jsonData['metrics'])
-
         } catch (err) {
             alert(err);
         } finally {
