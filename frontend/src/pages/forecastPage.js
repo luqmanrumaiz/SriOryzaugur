@@ -1,10 +1,14 @@
 import React, {useEffect, useRef, useState} from 'react';
-import Header from '../components/pages/header.js'
 import Select from 'react-select'
 import {SERIES_OPTIONS} from '../values/constants';
+
+import Header from '../components/pages/header.js'
 import Spinner from "../components/forecast/spinner";
+import MetricsCard from '../components/forecast/metricsCard'
 import LineChart from '../components/charts/lineChart.js'
+
 import {tailwindConfig, hexToRGB} from '../utils/utils.js';
+
 
 const ForecastPage = () => {
 
@@ -23,6 +27,7 @@ const ForecastPage = () => {
     const [actuals, setActuals] = useState([])
     const [forecasts, setForecasts] = useState([])
     const [forecastSummary, setForecastSummary] = useState('')
+    const [metrics, setMetrics] = useState()
     const chartData = {
         labels: dateLabels,
         datasets: [
@@ -52,13 +57,8 @@ const ForecastPage = () => {
             }
         ],
     };
-    const [chartKey, setChartKey] = useState(0);
 
     useEffect(() => {
-        //        console.log()
-        //        console.log()
-        //        console.log(dateLabels)
-
         if (dateLabels !== null) {
             chartData.labels = dateLabels.map(dateStr => new Date(dateStr).toLocaleDateString("en-US", {
                 year: "numeric",
@@ -68,9 +68,7 @@ const ForecastPage = () => {
         }
         chartData.datasets[0].data = actuals
         chartData.datasets[1].data = [...new Array(actuals.length).fill(null), ...forecasts]
-        setChartKey((prevKey) => prevKey + 1); // Add this line to update the chart key
 
-        console.log(chartData)
     }, [forecasts, actuals, dateLabels]);
 
     const handleNext = () => {
@@ -100,12 +98,19 @@ const ForecastPage = () => {
                 requestOptions
             );
             const jsonData = await response.json();
+            console.log(jsonData['metrics']);
+            Object.entries(jsonData['metrics']).map(([key, value]) => {
+                console.log(key);
+                console.log(value);
+            })
             setActuals(jsonData['actuals'])
             setForecasts(jsonData['forecasts'])
             setDateLabels(jsonData['dates'])
-            setForecastSummary(jsonData["summary"]);
+            setForecastSummary(jsonData['summary']);
+            setMetrics(jsonData['metrics'])
+
         } catch (err) {
-            console.log(err);
+            alert(err);
         } finally {
             setIsLoading(false);
             setIsSubmitted(true);
@@ -230,34 +235,14 @@ const ForecastPage = () => {
                                 <div className="mt-6 grid grid-cols-2 gap-6">
                                     <div className="px-4 py-6 bg-white rounded-lg shadow-md">
                                         <h2 className="text-lg font-medium text-gray-900 mb-4">Metrics</h2>
-                                        <div className="flex items-center mb-2">
-                                            <div
-                                                className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                                                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24"
-                                                     stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                          d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                            </div>
-                                            <div className="ml-3">
-                                                <p className="text-sm font-medium text-gray-900">MAPE</p>
-                                                <p className="text-sm font-medium text-gray-500">12.3%</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center mb-2">
-                                            <div
-                                                className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center">
-                                                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24"
-                                                     stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                          d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                            </div>
-                                            <div className="ml-3">
-                                                <p className="text-sm font-medium text-gray-900">SMAPE</p>
-                                                <p className="text-sm font-medium text-gray-500">8.9%</p>
-                                            </div>
-                                        </div>
+                                        {Object.entries(metrics).map(([key, value]) => (
+                                            <MetricsCard
+                                                key={key}
+                                                metric={{
+                                                title: key,
+                                                    metric: value
+                                            }}/>
+                                            ))}
                                     </div>
                                     <div className="px-4 py-6 bg-white rounded-lg shadow-md">
                                         <h2 className="text-lg font-medium text-gray-900 mb-4">Forecast</h2>
@@ -266,11 +251,11 @@ const ForecastPage = () => {
                                 </div>
                             </div>
                         </>
-                    )}
+                        )}
                 </section>
             </main>
         </div>
-    );
+        );
 };
 
 export default ForecastPage;
