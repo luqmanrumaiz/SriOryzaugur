@@ -1,19 +1,20 @@
 import pandas as pd
 import numpy as np
+import datetime
+from dateutil.relativedelta import relativedelta
 
 import lightning.pytorch as pl
-from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor
-from lightning.pytorch.loggers import TensorBoardLogger
+from lightning.pytorch.tuner import Tuner
 
 from pytorch_forecasting import Baseline, TimeSeriesDataSet, TemporalFusionTransformer
 from pytorch_forecasting.data import GroupNormalizer, NaNLabelEncoder
-from pytorch_forecasting.metrics import SMAPE, PoissonLoss, QuantileLoss, RMSE, MAPE, MAE
+from pytorch_forecasting.metrics import SMAPE, QuantileLoss, RMSE, MAPE, MAE
 from pytorch_forecasting.models.temporal_fusion_transformer.tuning import optimize_hyperparameters
 
 import torch
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-DEVICE
+
 
 class TFT:
     def __init__(self, data, max_prediction_length=12, batch_size=128):
@@ -29,11 +30,12 @@ class TFT:
         self.train_dataloader = None
         self.val_dataloader = None
         self.baseline_predictions = None
+        self.learning_rate = None
         self.hyperparams = None
         self.tft = None
         self.trainer = None
-        self.forecasts=None
-        self.raw_forecasts=None
+        self.forecasts = None
+        self.raw_forecasts = None
 
     def preprocess_data(self, series_to_merge, season_func=None):
         num_of_series = len(series_to_merge)
@@ -50,9 +52,9 @@ class TFT:
         combined_series['series'] = np.repeat(series_arr, combined_series.shape[0] / num_of_series)
         combined_series['series'] = combined_series['series'].astype(str)
 
-
         combined_series = (combined_series.merge(
-            (combined_series[['ds']].drop_duplicates(ignore_index=True).rename_axis('time_idx')).reset_index(), on=['ds']))
+            (combined_series[['ds']].drop_duplicates(ignore_index=True).rename_axis('time_idx')).reset_index(),
+            on=['ds']))
         combined_series['month'] = combined_series['ds'].dt.month
         combined_series['year'] = combined_series['ds'].dt.year
 
@@ -65,8 +67,6 @@ class TFT:
         self.max_encoder_length = self.data.ds.nunique()
         self.training_cutoff = self.data["time_idx"].max() - self.max_prediction_length
 
-
-        
     def create_ts_dataset(self, lags=[12]):
 
         self.training = TimeSeriesDataSet(
@@ -93,9 +93,8 @@ class TFT:
         self.validation = TimeSeriesDataSet.from_dataset(
             self.training, self.data, predict=True, stop_randomization=True
         )
-        
+
     def create_dataloaders(self):
-        # create dataloaders for model
         self.train_dataloader = self.training.to_dataloader(
             train=True, batch_size=self.batch_size, num_workers=0
         )
@@ -105,9 +104,43 @@ class TFT:
 
     def calculate_baseline_error(self):
         baseline_predictions = Baseline().predict(self.val_dataloader, return_y=True)
-        print(f"Baseline MAE: {MAE()(baseline_predictions.output, baseline_predictions.y)}")
         self.baseline_predictions = baseline_predictions
-    
+
+    def optimize_lr(self, plot_lr=False):
+        pl.seed_everything(42)
+        trainer = pl.Trainer(
+            accelerator=DEVICE,
+            gradient_clip_val=0.1,
+        )
+
+        tft = TemporalFusionTransformer.from_dataset(
+            self.training,
+            learning_rate=0.03,
+            hidden_size=8,
+            attention_head_size=1,
+            dropout=0.1,
+            hidden_continuous_size=8,
+            loss=QuantileLoss(),
+            optimizer="Ranger"
+        )
+
+        print(f"Number of parameters in network: {tft.size()/1e3:.1f}k")
+
+        res = Tuner(trainer).lr_find(
+            tft,
+            train_dataloaders=self.train_dataloader,
+            val_dataloaders=self.val_dataloader,
+            max_lr=10.0,
+            min_lr=1e-6,
+        )
+
+        self.learning_rate = res.suggestion()
+        print(f"suggested learning rate: {res.suggestion()}")
+
+        if plot_lr:
+            fig = res.plot(show=True, suggest=True)
+            fig.show()
+
     def optimize_hyperparameters(self, n_trials=200, max_epochs=50, use_learning_rate_finder=False):
         study = optimize_hyperparameters(
             self.train_dataloader,
@@ -127,27 +160,37 @@ class TFT:
         )
 
         self.hyperparams = study.best_trial.params
-    
-    def configure_network_and_trainer(self, hyperparams=None, callbacks=None, max_epochs=30, devices=1, 
-                                    limit_train_batches=30, enable_model_summary=False, loss=QuantileLoss(), 
-                                    log_interval=10, optimizer='Ranger', reduce_on_plateau_patience=4):
-                                  
-        if hyperparams is None:
+
+    def configure_network_and_trainer(self, hyperparams=None, callbacks=None, max_epochs=30, devices=1,
+                                      limit_train_batches=30, enable_model_summary=False, loss=QuantileLoss(),
+                                      log_interval=10, optimizer='Ranger', reduce_on_plateau_patience=4):
+
+        if hyperparams is None and self.hyperparams is not None:
             hyperparams = self.hyperparams
+        else:
+            hyperparams = {
+                "gradient_clip_val": 0.1,
+                "limit_train_batches": 30,
+                "learning_rate": 0.03,
+                "hidden_size": 16,
+                "attention_head_size": 2,
+                "dropout": 0.1,
+                "hidden_continuous_size": 8
+            }
 
         self.trainer = pl.Trainer(
             max_epochs=max_epochs,
             accelerator=DEVICE,
-            devices=1,
-            enable_model_summary=True,
+            devices=devices,
+            enable_model_summary=enable_model_summary,
             gradient_clip_val=hyperparams["gradient_clip_val"],
-            limit_train_batches=30,
+            limit_train_batches=limit_train_batches,
             callbacks=callbacks,
         )
 
         self.tft = TemporalFusionTransformer.from_dataset(
             self.training,
-            learning_rate=hyperparams["learning_rate"],
+            learning_rate=self.learning_rate if self.learning_rate is not None else hyperparams["learning_rate"],
             hidden_size=hyperparams["hidden_size"],
             attention_head_size=hyperparams["attention_head_size"],
             dropout=hyperparams["dropout"],
@@ -159,7 +202,7 @@ class TFT:
         )
 
         print(f"Number of parameters in network: {self.tft.size() / 1e3:.1f}k")
-        
+
     def fit_network(self):
         self.trainer.fit(
             self.tft,
@@ -170,31 +213,47 @@ class TFT:
         best_model_path = self.trainer.checkpoint_callback.best_model_path
         self.tft = TemporalFusionTransformer.load_from_checkpoint(best_model_path)
 
-        
     def evaluate(self):
-        self.forecasts = self.tft.predict(self.val_dataloader, return_x=True, return_y=True, trainer_kwargs=dict(accelerator="cpu"))
+        self.forecasts = self.tft.predict(self.val_dataloader, return_x=True, return_y=True,
+                                          trainer_kwargs=dict(accelerator="cpu"))
+        self.raw_forecasts = self.tft.predict(self.val_dataloader, mode="raw", return_x=True)
+
+        date = self.data.iloc[-1]['ds']
+        predicted_dates = []
+
+        for i in range(self.max_prediction_length):
+            date += relativedelta(months=1)
+            predicted_dates.append(date)
 
         metrics = {
+            'BASELINE MAE': MAE()(self.baseline_predictions.output, self.baseline_predictions.y),
             'MAE': MAE()(self.forecasts.output, self.forecasts.y),
             'MAPE': MAPE()(self.forecasts.output, self.forecasts.y),
             'SMAPE': SMAPE()(self.forecasts.output, self.forecasts.y),
             'RMSE': RMSE()(self.forecasts.output, self.forecasts.y)
         }
 
-        return self.tft.predict(self.val_dataloader), metrics
+        for key, val in metrics.items():
+            metrics[key] = round(val.item(), 2)
 
+        forecasts = self.forecasts.output[0].numpy().tolist()
+        forecasts = [float(x) for x in forecasts]
+        forecasts = list(map(lambda x: round(x, 2), forecasts))
+
+        return forecasts, [dt.strftime('%Y-%m-%d') for dt in predicted_dates], metrics
 
     def interpret_model(self):
-        interpretation = self.tft.interpret_output(self.forecasts.output, reduction="sum")
+        interpretation = self.tft.interpret_output(self.raw_forecasts.output, reduction="sum")
         self.tft.plot_interpretation(interpretation)
 
-    def plot_forecasts(self):
-        self.tft.plot_prediction(self.forecasts.x, self.forecasts.output, idx=0)
-        for idx in range(self.data.series.nunique()):
-            best_tft.plot_prediction(
-                self.forecasts.x,
-                self.forecasts.output,
-                idx=indices[idx],
-                add_loss_to_title=SMAPE(quantiles=self.tft.loss.quantiles),
-            )
-                
+    def plot_forecasts(self, plot_all_series=False):
+        if plot_all_series:
+            for idx in range(self.data.series.nunique()):
+                self.tft.plot_prediction(
+                    self.raw_forecasts.x,
+                    self.raw_forecasts.output,
+                    idx=idx,
+                    add_loss_to_title=True,
+                )
+        else:
+            self.tft.plot_prediction(self.raw_forecasts.x, self.raw_forecasts.output, idx=0)

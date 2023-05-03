@@ -60,16 +60,20 @@ def generate_forecasts():
             tft_model.optimize_hyperparameters(n_trials=2, max_epochs=3, use_learning_rate_finder=False)
             logging.info('Successfully optimized hyperparameters')
 
-            tft_model.configure_network_and_trainer(loss=ImplicitQuantileNetworkDistributionLoss())
+            tft_model.configure_network_and_trainer()
             logging.info('Successfully configured trainer, model is ready for training!')
 
             tft_model.fit_network()
             logging.info('Successfully fit model')
 
+            tft_model.calculate_baseline_error()
+            logging.info('Successfully calculated baseline model MAE')
+
             model_results = tft_model.evaluate()
             forecasts = model_results[0]
             forecasted_dates = model_results[1]
             metrics = model_results[2]
+            logging.info('Successfully generated forecasts and evaluated model')
 
             return json.dumps(
                 {
