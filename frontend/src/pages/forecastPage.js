@@ -7,16 +7,16 @@ import Spinner from "../components/forecast/spinner";
 import MetricsCard from '../components/forecast/metricsCard'
 import LineChart from '../components/charts/lineChart.js'
 
-import {tailwindConfig, hexToRGB} from '../utils/utils.js';
+import {tailwindConfig} from '../utils/utils.js';
 
 
 const ForecastPage = () => {
 
     const [step, setStep] = useState(1);
 
-    const [selectedOptions, setSelectedOptions] = useState(SERIES_OPTIONS[0]);
+    const [selectedOptions, setSelectedOptions] = useState();
 
-    const [allowedDateRange, setAllowedDateRange] = useState(["1996-01", "2022-12"])
+    const allowedDateRange = ["1996-01", "2022-12"]
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
 
@@ -84,11 +84,12 @@ const ForecastPage = () => {
     const fetchData = async () => {
         setIsLoading(true);
 
+        let selectedSeries = selectedOptions.unshift(SERIES_OPTIONS[0])
         const requestOptions = {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
-                selected_series: selectedOptions,
+                selected_series: selectedSeries,
                 date_from: dateFrom,
                 date_to: dateTo,
             }),
@@ -96,7 +97,7 @@ const ForecastPage = () => {
 
         try {
             const response = await fetch(
-                "http://127.0.0.1:5000/generate-forecasts",
+                process.env.REACT_APP_BASE_API_URL,
                 requestOptions
             );
             const jsonData = await response.json();
@@ -151,10 +152,9 @@ const ForecastPage = () => {
                                         </p>
                                     </div>
                                     <Select
-                                        defaultValue={[SERIES_OPTIONS[0]]}
                                         isMulti
                                         name="series"
-                                        options={SERIES_OPTIONS}
+                                        options={SERIES_OPTIONS.slice(1)}
                                         onChange={(selectedOptions) => setSelectedOptions(selectedOptions)}
                                         className="basic-multi-select"
                                         classNamePrefix="select"
@@ -236,26 +236,27 @@ const ForecastPage = () => {
                                             <MetricsCard
                                                 key={key}
                                                 metric={{
-                                                title: key,
+                                                    title: key,
                                                     metric: value
-                                            }}/>
-                                            ))}
+                                                }}/>
+                                        ))}
                                     </div>
                                     <div className="px-4 py-6 bg-white rounded-lg shadow-md">
                                         <h2 className="text-lg font-medium text-gray-900 mb-4">Forecast</h2>
                                         <p className="text-gray-600 mb-2">{forecastSummary}</p>
                                     </div>
                                 </div>
-                                <button class="w-full bg-green-700 hover:bg-yellow-700 duration-150 ease-in-out text-white font-bold py-2 px-4 rounded">
+                                <button
+                                    class="w-full bg-green-700 hover:bg-yellow-700 duration-150 ease-in-out text-white font-bold py-2 px-4 rounded">
                                     Forecast Again
                                 </button>
                             </div>
                         </>
-                        )}
+                    )}
                 </section>
             </main>
         </div>
-        );
+    );
 };
 
 export default ForecastPage;
