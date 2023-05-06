@@ -84,7 +84,9 @@ const ForecastPage = () => {
     const fetchData = async () => {
         setIsLoading(true);
 
-        let selectedSeries = selectedOptions.unshift(SERIES_OPTIONS[0])
+        let selectedSeries = selectedOptions
+        selectedSeries.unshift(SERIES_OPTIONS[0])
+
         const requestOptions = {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -97,7 +99,7 @@ const ForecastPage = () => {
 
         try {
             const response = await fetch(
-                process.env.REACT_APP_BASE_API_URL,
+                process.env.REACT_APP_BASE_API_URL + '/generate-forecasts',
                 requestOptions
             );
             const jsonData = await response.json();
@@ -218,7 +220,7 @@ const ForecastPage = () => {
                         <div className="absolute inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
                             <div className="flex flex-col items-center bg-white p-4 rounded-md shadow-md">
                                 <Spinner/>
-                                <p className="mt-4 text-lg text-gray-700">Generating Forecasts ♾️</p>
+                                <p className="mt-4 text-lg text-gray-700">Generating Forecasts ...</p>
                             </div>
                         </div>
                     )}
