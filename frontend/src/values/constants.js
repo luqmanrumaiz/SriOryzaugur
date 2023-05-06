@@ -47,6 +47,14 @@ export const SERIES_OPTIONS = [
     },
     {
         value: {
+            metadata: {fuel_type: 'diesel'},
+            collection: 'fuel_prices',
+            target: 'fuel_price'
+        },
+        label: 'Fuel Prices'
+    },
+    {
+        value: {
             metadata: {monetary_aggregate_type: 'm1'},
             collection: 'monetary_aggregates',
             target: 'amount_mm'
