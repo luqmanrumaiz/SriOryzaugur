@@ -1,27 +1,27 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react'
 import Select from 'react-select'
-import {SERIES_OPTIONS} from '../values/constants';
+import {SERIES_OPTIONS} from '../values/constants'
 
 import Header from '../components/pages/header.js'
-import Spinner from "../components/forecast/spinner";
+import Spinner from "../components/forecast/spinner"
 import MetricsCard from '../components/forecast/metricsCard'
 import LineChart from '../components/charts/lineChart.js'
 
-import {tailwindConfig} from '../utils/utils.js';
+import {tailwindConfig} from '../utils/utils.js'
 
 
 const ForecastPage = () => {
 
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(1)
 
-    const [selectedOptions, setSelectedOptions] = useState();
+    const [selectedOptions, setSelectedOptions] = useState()
 
     const allowedDateRange = ["1996-01", "2022-12"]
-    const [dateFrom, setDateFrom] = useState('');
-    const [dateTo, setDateTo] = useState('');
+    const [dateFrom, setDateFrom] = useState('')
+    const [dateTo, setDateTo] = useState('')
 
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isLoading, setIsLoading] = useState(false)
+    const [isSubmitted, setIsSubmitted] = useState(false)
 
     const [dateLabels, setDateLabels] = useState([])
     const [actuals, setActuals] = useState([])
@@ -52,7 +52,7 @@ const ForecastPage = () => {
                 clip: 20,
             }
         ],
-    };
+    }
 
     useEffect(() => {
         if (dateLabels !== null) {
@@ -63,26 +63,25 @@ const ForecastPage = () => {
             }))
         }
 
-        chartData.datasets[0].data = actuals;
+        chartData.datasets[0].data = actuals
 
         let forecastedValues = forecasts
         let actualsTrimmed = actuals.slice(0, -forecasts.length)
-        for (let value in actualsTrimmed) {
-            forecastedValues.unshift(null);
-        }
+        forecastedValues.unshift(...Array(actualsTrimmed.length).fill(null))
+
         chartData.datasets[1].data = forecastedValues
-    }, [forecasts, actuals, dateLabels]);
+    }, [forecasts, actuals, dateLabels])
 
     const handleNext = () => {
-        setStep(step + 1);
-    };
+        setStep(step + 1)
+    }
 
     const handlePrev = () => {
-        setStep(step - 1);
-    };
+        setStep(step - 1)
+    }
 
     const fetchData = async () => {
-        setIsLoading(true);
+        setIsLoading(true)
 
         let selectedSeries = selectedOptions
         selectedSeries.unshift(SERIES_OPTIONS[0])
@@ -95,32 +94,32 @@ const ForecastPage = () => {
                 date_from: dateFrom,
                 date_to: dateTo,
             }),
-        };
+        }
 
         try {
             const response = await fetch(
                 process.env.REACT_APP_BASE_API_URL + '/generate-forecasts',
                 requestOptions
-            );
-            const jsonData = await response.json();
+            )
+            const jsonData = await response.json()
 
             setActuals(jsonData['actuals'])
             setForecasts(jsonData['forecasts'])
             setDateLabels(jsonData['dates'])
-            setForecastSummary(jsonData['summary']);
+            setForecastSummary(jsonData['summary'])
             setMetrics(jsonData['metrics'])
         } catch (err) {
-            alert(err);
+            alert(err)
         } finally {
-            setIsLoading(false);
-            setIsSubmitted(true);
+            setIsLoading(false)
+            setIsSubmitted(true)
         }
-    };
+    }
 
     const handleFormSubmit = async (e) => {
-        e.preventDefault();
-        await fetchData();
-    };
+        e.preventDefault()
+        await fetchData()
+    }
 
     return (
         <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
@@ -258,7 +257,7 @@ const ForecastPage = () => {
                 </section>
             </main>
         </div>
-    );
-};
+    )
+}
 
-export default ForecastPage;
+export default ForecastPage
