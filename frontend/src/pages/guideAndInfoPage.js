@@ -23,6 +23,13 @@ const GuideAndInfoPage = () => {
                             The prices of rice and paddy in Sri Lanka are largely impacted by factors such as the production levels of paddy and rice, the weather conditions that affect the productivity of the crop, demand, and supply of the crop within the country, and the import and export of the crop. In addition to this, the government policies, subsidies, and taxes also play a major role in determining the prices of rice and paddy in Sri Lanka. Furthermore, the demand from other countries and the global policies related to the crop also affect the prices of paddy and rice in Sri Lanka.
                         </p>
                         <br></br>
+                        <h1>How to Generate Forecasts 📉?</h1>
+                        <ol>
+                            <li>Go to the <a href="/forecast">Create Forecasts Page</a></li>
+                            <li>Select additional series to improve forecasting accuracy</li>
+                            <li>Select a date range, the last 12 months of the filtered data with the given date will be forecasted</li>
+                        </ol>
+                        <br></br>
                     </article>
                 </div>
             </div>
