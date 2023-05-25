@@ -336,7 +336,7 @@ class TFT:
         best_model_path = self.trainer.checkpoint_callback.best_model_path
         self.tft = TemporalFusionTransformer.load_from_checkpoint(best_model_path)
 
-    def evaluate(self):
+    def evaluate(self, actuals):
         """
         Evaluate the trained model.
 
@@ -360,20 +360,26 @@ class TFT:
             date += relativedelta(months=1)
             predicted_dates.append(date)
 
-        # calculate evaluation metrics
-        metrics = {
-            'MAE': MAE()(self.forecasts.output, self.forecasts.y),
-            'MAPE': MAPE()(self.forecasts.output, self.forecasts.y),
-            'SMAPE': SMAPE()(self.forecasts.output, self.forecasts.y),
-            'RMSE': RMSE()(self.forecasts.output, self.forecasts.y)
-        }
-        for key, val in metrics.items():
-            metrics[key] = round(val.item(), 2)
-
         # format forecasts
         forecasts = self.forecasts.output[0].numpy().tolist()
         forecasts = [float(x) for x in forecasts]
         forecasts = list(map(lambda x: round(x, 2), forecasts))
+
+        actuals_arr = np.array(actuals)
+        forecasts_arr = np.array(forecasts)
+
+        mape = np.mean(np.abs((actuals_arr - forecasts_arr) / actuals_arr))
+        mae = np.mean(np.abs(actuals_arr - forecasts_arr))
+        rmse = np.sqrt(np.mean((actuals_arr - forecasts_arr)))
+
+        # calculate evaluation metrics
+        metrics = {
+            'MAE': mae,
+            'MAPE': mape,
+            'RMSE': rmse
+        }
+        for key, val in metrics.items():
+            metrics[key] = round(val.item(), 2)
 
         return forecasts, [dt.strftime('%Y-%m-%d') for dt in predicted_dates], metrics
 

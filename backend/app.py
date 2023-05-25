@@ -59,24 +59,20 @@ def generate_forecasts():
             tft_model.create_dataloaders()
             logging.info('Successfully prepared ts obj. and dataloaders')
 
-            # Optimize hyperparameters
-            tft_model.tune_hyperparameters(n_trials=2, max_epochs=3, use_learning_rate_finder=False)
-            logging.info('Successfully optimized hyperparameters')
-
             # Configure network and trainer
-            tft_model.configure_network_and_trainer()
+            tft_model.configure_network_and_trainer(hyperparams=constants.BEST_HYPER_PARAMETERS,
+                                                    max_epochs=5)
             logging.info('Successfully configured trainer, model is ready for training!')
 
             # Train model
             tft_model.fit_network()
             logging.info('Successfully fit model')
 
-            # Calculate baseline error
-            tft_model.calculate_baseline_error()
-            logging.info('Successfully calculated baseline model MAE')
+            actuals = df.iloc[:, 1].tolist()
 
             # Generate forecasts and evaluate model performance
-            model_results = tft_model.evaluate()
+            model_results = tft_model.evaluate(actuals=actuals[-12:])
+
             forecasts = model_results[0]
             forecasted_dates = model_results[1]
             metrics = model_results[2]
@@ -87,7 +83,7 @@ def generate_forecasts():
                 {
                     'success': True,
                     'dates': [dt.strftime('%Y-%m-%d') for dt in df['date'].tolist()] + forecasted_dates,
-                    'actuals': df.iloc[:, 1].tolist(),
+                    'actuals': actuals,
                     'forecasts': forecasts,
                     'summary': get_forecast_summary(forecasts, forecasted_dates),
                     'metrics': metrics
