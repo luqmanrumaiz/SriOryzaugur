@@ -61,7 +61,7 @@ def generate_forecasts():
 
             # Configure network and trainer
             tft_model.configure_network_and_trainer(hyperparams=constants.BEST_HYPER_PARAMETERS,
-                                                    max_epochs=5)
+                                                    max_epochs=30)
             logging.info('Successfully configured trainer, model is ready for training!')
 
             # Train model
