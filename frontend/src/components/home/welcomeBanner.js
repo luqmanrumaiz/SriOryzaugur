@@ -1,7 +1,10 @@
 import React from 'react';
 import {Colors} from '../../values/colors.js';
+import {useTranslation} from "react-i18next";
 
 function WelcomeBanner() {
+    const { t } = useTranslation();
+
     return (
         <div className="relative bg-green-800 p-4 sm:p-6 rounded-sm overflow-hidden mb-8 shadow-md">
 
@@ -52,8 +55,8 @@ function WelcomeBanner() {
 
             {/* Content */}
             <div className="relative">
-                <h1 className="text-2xl md:text-3xl text-white font-bold mb-1">Ayubowan 👋</h1>
-                <p className="text-white	">Here is what’s happening with rice prices today:</p>
+                <h1 className="text-2xl md:text-3xl text-white font-bold mb-1">{t('greeting')} 👋</h1>
+                <p className="text-white">{t('status')}</p>
             </div>
         </div>
     );

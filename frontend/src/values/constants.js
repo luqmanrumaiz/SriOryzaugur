@@ -62,3 +62,18 @@ export const SERIES_OPTIONS = [
         label: 'Money Supply'
     }
 ]
+
+export const LANGUAGE_OPTIONS = [
+    {
+        value: 'en',
+        label: 'English'
+    },
+    {
+        value: 'si',
+        label: 'Sinhala'
+    },
+    {
+        value: 'ta',
+        label: 'Tamil'
+    },
+]

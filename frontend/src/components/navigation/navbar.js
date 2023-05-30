@@ -1,20 +1,25 @@
 import {Disclosure} from '@headlessui/react'
 import {Bars3Icon, XMarkIcon} from '@heroicons/react/24/outline'
-import Logo from "../../assets/images/logo.png"
-import {useEffect} from "react";
+import { useTranslation } from 'react-i18next'
+import Select from "react-select";
 
-const navigation = [
-    {name: 'Home', href: '/', current: true},
-    {name: 'Create Forecasts', href: 'forecast', current: false},
-    {name: 'Guide & Feature Info', href: 'guide', current: false},
-]
+import Logo from "../../assets/images/logo.png"
+import React, {useContext, useEffect, useState} from "react";
+import {LANGUAGE_OPTIONS} from "../../values/constants";
+import LanguageSelector from "./languageSelector";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
 
 export default function Navbar() {
-
+    const { t } = useTranslation();
+    const navigation = [
+        {name: t("home_page"), href: '/', current: true},
+        {name: t("forecast_page"), href: 'forecast', current: false},
+        {name: t("guide_page"), href: 'guide', current: false},
+    ]
+    const [showOverlay, setShowOverlay] = useState(false);
 
     useEffect(() => {
         // Update the 'current' property in the navigation array
@@ -54,6 +59,7 @@ export default function Navbar() {
                         <div className="relative flex h-16 items-center justify-between">
                             <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
                                 <Disclosure.Button
+                                    onClick={() => setShowOverlay(!showOverlay)}
                                     className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
                                     <span className="sr-only">Open main menu</span>
                                     {open ? (
@@ -63,6 +69,25 @@ export default function Navbar() {
                                     )}
                                 </Disclosure.Button>
                             </div>
+                            {showOverlay && (
+                                <div className="fixed inset-0 flex items-center justify-center z-50 bg-green-700 ">
+                                    <div className="max-w-sm mx-auto bg-white p-8 rounded-lg animate-fade-in">
+                                        <ul className="space-y-4">
+                                            {navigation.map((item) => (
+                                                <li key={item.name}>
+                                                    <a
+                                                        href={item.href}
+                                                        className="block py-2 px-4 text-gray-800 font-bold rounded-sm hover:text-white hover:bg-yellow-700 transition duration-300 ease-in-out"
+                                                        onClick={() => setShowOverlay(false)}
+                                                    >
+                                                        {item.name}
+                                                    </a>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            )}
                             <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                                 <div className="flex flex-shrink-0 items-center">
                                     <img
@@ -77,6 +102,7 @@ export default function Navbar() {
                                     />
                                 </div>
                             </div>
+                            <LanguageSelector />
                             <div
                                 className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
                                 <div className="hidden sm:ml-6 sm:block">

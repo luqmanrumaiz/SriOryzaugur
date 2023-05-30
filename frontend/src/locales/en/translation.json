@@ -1,0 +1,31 @@
+{
+  "greeting": "Ayubowan",
+  "status": "Here is what’s happening with rice prices today:",
+  "home_page": "Home",
+  "forecast_page": "Create Forecasts",
+  "guide_page": "Guide and Feature Info",
+  "forecast_page_title": "Lets Start Forecasting",
+  "forecast_page_subtitle": "Please enter the below fields to create your forecasting model",
+  "form_part_1_title": "Select Series",
+  "form_part_1_subtitle_1": "Select below the exogenous factors that you'd wish to be used along with rice prices when forecasting.",
+  "form_part_1_subtitle_2": "If you wish to forecast prices using soley the retail price of rice (Univariate), then skip to the next part of the form",
+  "form_part_2_title": "Select Date Range",
+  "form_part_2_subtitle_1": "You may enter dates ranginng from 1996-01 to 2022-12.",
+  "form_part_2_date_from": "Date From Start",
+  "form_part_2_date_to": "Date to End",
+  "form_next_btn": "Next",
+  "form_prev_btn": "Previous",
+  "form_submit_btn": "Submit",
+  "form_again_btn": "Forecast Again",
+  "guide_title_1": "What is the purpose of this project",
+  "guide_desc_1": "The goal of SriOryzaugur is to provide a platform to accurately forecast rice and paddy prices in Sri Lanka",
+  "guide_title_2": "What are the different factors that affect rice prices in Sri Lanka",
+  "guide_desc_2": "The prices of rice and paddy in Sri Lanka are largely impacted by factors such as the production levels of paddy and rice, the weather conditions that affect the productivity of the crop, demand, and supply of the crop within the country, and the import and export of the crop. In addition to this, the government policies, subsidies, and taxes also play a major role in determining the prices of rice and paddy in Sri Lanka. Furthermore, the demand from other countries and the global policies related to the crop also affect the prices of paddy and rice in Sri Lanka.",
+  "guide_title_3": "How to Generate Forecasts",
+  "guide_text_3": {
+    "guide_text_3_1": "Go to the",
+    "guide_text_3_2": "Create Forecasts Page",
+    "guide_text_3_3": "Select additional series to improve forecasting accuracy",
+    "guide_text_3_4": "Select a date range, the last 12 months of the filtered data with the given date will be forecasted"
+  }
+}

@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react'
+import {useNavigate} from "react-router-dom";
 import Select from 'react-select'
 import {SERIES_OPTIONS} from '../values/constants'
 
@@ -8,21 +9,18 @@ import MetricsCard from '../components/forecast/metricsCard'
 import LineChart from '../components/charts/lineChart.js'
 
 import {tailwindConfig} from '../utils/utils.js'
+import {useTranslation} from "react-i18next";
 
 
 const ForecastPage = () => {
-
+    const {t} = useTranslation();
     const [step, setStep] = useState(1)
-
     const [selectedOptions, setSelectedOptions] = useState()
-
     const allowedDateRange = ["1996-01", "2022-12"]
     const [dateFrom, setDateFrom] = useState('')
     const [dateTo, setDateTo] = useState('')
-
     const [isLoading, setIsLoading] = useState(false)
     const [isSubmitted, setIsSubmitted] = useState(false)
-
     const [dateLabels, setDateLabels] = useState([])
     const [actuals, setActuals] = useState([])
     const [forecasts, setForecasts] = useState([])
@@ -53,6 +51,8 @@ const ForecastPage = () => {
             }
         ],
     }
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (dateLabels !== null) {
@@ -123,33 +123,28 @@ const ForecastPage = () => {
 
     return (
         <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
-            <Header heading="Lets Start Forecasting 📈"/>
+            <Header heading={t("forecast_page_title")}/>
             <main>
                 <section
                     className="max-w-9xl p-6 mx-auto bg-yellow-600 rounded-md shadow-md mt-5 flex flex-col h-full">
                     {(!isSubmitted && !isLoading) && <>
 
-                        <h1 className="text-xl font-bold text-white mb-5">Please enter the below
-                            fields to
-                            create
-                            your forecasting model
+                        <h1 className="text-xl font-bold text-white mb-5">
+                            {t("forecast_page_subtitle")}
                         </h1>
 
                         <form
                             onSubmit={handleFormSubmit} className="bg-white shadow-md rounded px-8 py-6">
                             {step === 1 && (
                                 <div>
-                                    <h2 className="text-2xl font-semibold mb-3">1️⃣ Select Series</h2>
+                                    <h2 className="text-2xl font-semibold mb-3">1️⃣ {t("form_part_1_title")}</h2>
                                     <div
                                         className="bg-blue-100 border-t border-b border-blue-500 text-blue-700 px-4 py-3 mb-4"
                                         role="alert">
-                                        <p className="font-bold">Select below the exogenous factors that you'd wish
-                                            to be
-                                            used along with rice prices when forecasting.
-                                            <br></br>
-                                            If you wish to forecast prices using soley the retail price of rice
-                                            (Univariate),
-                                            then skip to the next part of the form
+                                        <p className="font-bold">
+                                            {t("form_part_1_subtitle_1")}
+                                            <br/>
+                                            {t("form_part_1_subtitle_2")}
                                         </p>
                                     </div>
                                     <Select
@@ -165,23 +160,24 @@ const ForecastPage = () => {
                                         type="button"
                                         onClick={handleNext}
                                     >
-                                        Next
+                                        {t("form_next_btn")}
                                     </button>
                                 </div>
                             )}
                             {step === 2 && (
                                 <div>
-                                    <h2 className="text-2xl font-semibold mb-4">2️⃣ Date Range</h2>
+                                    <h2 className="text-2xl font-semibold mb-4">2️⃣ {t("form_part_2_title")}</h2>
                                     <div
                                         className="bg-blue-100 border-t border-b border-blue-500 text-blue-700 px-4 py-3 mb-4"
                                         role="alert">
-                                        <p className="font-bold">You may enter dates ranginng
-                                            from {allowedDateRange[0]} to {allowedDateRange[1]}.
+                                        <p className="font-bold">
+                                            {t("form_part_2_subtitle_1")}
                                         </p>
                                     </div>
                                     <div className="mb-5">
-                                        <label htmlFor="date_from">Date From
-                                            Start</label>
+                                        <label htmlFor="date_from">
+                                            {t("form_part_2_date_from")}
+                                        </label>
                                         <input id="date_from" type="month" min="1996-01" max="2022-12"
                                                placeholder="YYYY-MM"
                                                required
@@ -190,7 +186,7 @@ const ForecastPage = () => {
                                                className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md focus:border-blue-500 focus:outline-none focus:ring"/>
                                     </div>
                                     <div className="mb-5">
-                                        <label htmlFor="date_to">Date to End 🔚</label>
+                                        <label htmlFor="date_to"> {t("form_part_2_date_to")} 🔚</label>
                                         <input id="date_to" type="month" min="1996-01" max="2022-12"
                                                placeholder="YYYY-MM"
                                                required
@@ -203,13 +199,13 @@ const ForecastPage = () => {
                                         type="button"
                                         onClick={handlePrev}
                                     >
-                                        Previous
+                                        {t("form_prev_btn")}
                                     </button>
                                     <button
                                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                                         type="submit"
                                     >
-                                        Submit
+                                        {t("form_submit_btn")}
                                     </button>
                                 </div>
                             )}
@@ -219,7 +215,7 @@ const ForecastPage = () => {
                         <div className="absolute inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
                             <div className="flex flex-col items-center bg-white p-4 rounded-md shadow-md">
                                 <Spinner/>
-                                <p className="mt-4 text-lg text-gray-700">Generating Forecasts ...</p>
+                                <p className="mt-4 text-lg text-gray-700">{t("forecast_page_title")} ...</p>
                             </div>
                         </div>
                     )}
@@ -248,8 +244,10 @@ const ForecastPage = () => {
                                     </div>
                                 </div>
                                 <button
-                                    class="w-full bg-green-700 hover:bg-yellow-700 duration-150 ease-in-out text-white font-bold py-2 px-4 rounded">
-                                    Forecast Again
+                                    className="w-full bg-green-700 hover:bg-yellow-700 duration-150 ease-in-out text-white font-bold py-2 px-4 rounded mt-5"
+                                    onClick={() => window.location.reload()}
+                                >
+                                    {t("form_again_btn")}
                                 </button>
                             </div>
                         </>
