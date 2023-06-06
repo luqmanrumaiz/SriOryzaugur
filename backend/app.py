@@ -55,13 +55,13 @@ def generate_forecasts():
             logging.info('Successfully preprocessed data')
 
             # Create time series dataset and dataloaders
-            tft_model.create_ts_dataset()
+            tft_model.create_ts_dataset(lags=[3, 6, 12])
             tft_model.create_dataloaders()
             logging.info('Successfully prepared ts obj. and dataloaders')
 
             # Configure network and trainer
             tft_model.configure_network_and_trainer(hyperparams=constants.BEST_HYPER_PARAMETERS,
-                                                    max_epochs=5)
+                                                    max_epochs=30)
             logging.info('Successfully configured trainer, model is ready for training!')
 
             # Train model

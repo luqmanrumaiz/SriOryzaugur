@@ -13,43 +13,62 @@ function classNames(...classes) {
 }
 
 export default function Navbar() {
-    const { t } = useTranslation();
-    const navigation = [
-        {name: t("home_page"), href: '/', current: true},
-        {name: t("forecast_page"), href: 'forecast', current: false},
-        {name: t("guide_page"), href: 'guide', current: false},
-    ]
+    const { t, i18n } = useTranslation();
+    const [navigation, setNavigation] = useState([
+        { name: t("home_page"), href: "/", current: true },
+        { name: t("forecast_page"), href: "forecast", current: false },
+        { name: t("guide_page"), href: "guide", current: false },
+    ]);
+
     const [showOverlay, setShowOverlay] = useState(false);
 
     useEffect(() => {
-        // Update the 'current' property in the navigation array
         const handleHrefChange = (newHref) => {
-            navigation.forEach(navItem => {
+            let updatedNavigation = navigation
+            updatedNavigation.forEach(navItem => {
                 if(newHref === "")
                     newHref = "/"
-                
+
                 navItem.current = navItem.href === newHref;
             });
 
-            // You can perform additional actions here after updating the navigation array
-            // For example, you can call a function or dispatch an action to update the UI
+            setNavigation(updatedNavigation);
         };
 
-        // Add an event listener to window.location to detect changes in the href
         const handleLocationChange = () => {
-            const newHref = window.location.pathname.substr(1); // Get the new href value
-            handleHrefChange(newHref); // Call the handleHrefChange function with the new href
+            const newHref = window.location.pathname.substr(1);
+            handleHrefChange(newHref);
         };
-        window.addEventListener('popstate', handleLocationChange);
+        window.addEventListener("popstate", handleLocationChange);
 
-        // Call handleHrefChange initially with the current href value
         handleHrefChange(window.location.pathname.substr(1));
 
-        // Clean up the event listener on component unmount
         return () => {
-            window.removeEventListener('popstate', handleLocationChange);
-        };
+            window.removeEventListener("popstate", handleLocationChange);
+        }
     }, []);
+
+    useEffect(() => {
+
+        let updatedNavigation = navigation
+
+        updatedNavigation[0].name = t("home_page")
+        updatedNavigation[1].name = t("forecast_page")
+        updatedNavigation[2].name = t("guide_page")
+
+        setNavigation(updatedNavigation);
+
+    }, [t]);
+
+    useEffect(() => {
+        // Update navigation when the language changes
+        let updatedNavigation = navigation.map((item) => ({
+            ...item,
+            name: t(item.name),
+        }));
+        setNavigation(updatedNavigation);
+
+        }, [i18n.language]);
 
     return (
         <Disclosure as="nav" className="bg-white-800">

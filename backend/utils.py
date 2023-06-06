@@ -59,8 +59,9 @@ def retrieve_ts_data(client, selected_series, date_from, date_to):
     # Return the final DataFrame
     return df
 
-# Define a function to generate a summary of a forecast
-# Define a function to generate a summary of a forecast
+# This function generates a summary of the forecasted values
+import pandas as pd
+
 def get_forecast_summary(forecasts, forecasted_dates):
     # Create a DataFrame with the forecasted values and dates
     forecast_df = pd.DataFrame({
@@ -78,22 +79,25 @@ def get_forecast_summary(forecasts, forecasted_dates):
 
     # Determine whether the growth is positive or negative and adjust the summary string accordingly
     if forecast_growth >= 0:
-        summary = f"The forecast predicts a {annualized_growth:.1%} increase over the next 12 months, "
+        summary = f"The forecast predicts a {annualized_growth:.1%} increase over the next 12 months."
     else:
-        summary = f"The forecast predicts a {abs(annualized_growth):.1%} decrease over the next 12 months, "
+        summary = f"The forecast predicts a {abs(annualized_growth):.1%} decrease over the next 12 months."
 
     # Group the forecast values by quarter and compute the quarterly growth rates
     forecast_df['quarter'] = pd.PeriodIndex(forecast_df['date'], freq='Q')
+    quarterly_values = forecast_df.groupby('quarter')['value'].sum()
 
-    # Get the sum of the forecast values for each quarter
-    quarterly_values = forecast_df.groupby('quarter').sum()
+    # Convert the 'value' column in quarterly_values to numeric values
+    quarterly_values = pd.to_numeric(quarterly_values)
+
     # Compute the quarter-to-quarter percentage change in the forecast values and drop missing values
     quarterly_growth = quarterly_values.pct_change().dropna()
 
     # Find the quarter with the highest growth rate and format the summary string
-    highest_growth_quarter = quarterly_growth.idxmax()[0].strftime('%B')
-    summary += f"with the largest growth expected in {highest_growth_quarter}."
+    highest_growth_quarter = quarterly_growth.idxmax().strftime('%B')
+    summary += f" The largest growth is expected in {highest_growth_quarter}."
 
     # Return the summary string
     return summary
+
 

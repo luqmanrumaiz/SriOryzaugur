@@ -8,10 +8,13 @@ from lightning.pytorch.tuner import Tuner
 
 from pytorch_forecasting import Baseline, TimeSeriesDataSet, TemporalFusionTransformer
 from pytorch_forecasting.data import GroupNormalizer, NaNLabelEncoder
-from pytorch_forecasting.metrics import SMAPE, QuantileLoss, RMSE, MAPE, MAE
+from pytorch_forecasting.metrics import QuantileLoss
 from pytorch_forecasting.models.temporal_fusion_transformer.tuning import optimize_hyperparameters
 
 import torch
+
+import math
+from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 
 # Check if GPU is available
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -47,7 +50,7 @@ class TFT:
         self.forecasts = None
         self.raw_forecasts = None
 
-    def preprocess_data(self, series_to_merge, season_func=None):
+    def preprocess_data(self, series_to_merge, encoder_length_60=False, season_func=None):
         """
         Preprocess input data.
 
@@ -85,10 +88,11 @@ class TFT:
 
         # update data and set training cutoff
         self.data = combined_series
-        self.max_encoder_length = self.data.ds.nunique()
+
+        self.max_encoder_length = 60
         self.training_cutoff = self.data["time_idx"].max() - self.max_prediction_length
 
-    def create_ts_dataset(self, lags=[12], normalize=True):
+    def create_ts_dataset(self, lags=None, normalize=True):
         """
         Create TimeSeriesDataSet for training and validation.
 
@@ -100,6 +104,8 @@ class TFT:
             None
         """
 
+        if lags is None:
+            lags = [12]
         if normalize:
             self.training = TimeSeriesDataSet(
                 self.data[lambda x: x.time_idx <= self.training_cutoff],
@@ -368,9 +374,10 @@ class TFT:
         actuals_arr = np.array(actuals)
         forecasts_arr = np.array(forecasts)
 
-        mape = np.mean(np.abs((actuals_arr - forecasts_arr) / actuals_arr))
-        mae = np.mean(np.abs(actuals_arr - forecasts_arr))
-        rmse = np.sqrt(np.mean((actuals_arr - forecasts_arr)))
+        mape = mean_absolute_percentage_error(actuals_arr, forecasts_arr)
+        mae = mean_absolute_error(actuals_arr, forecasts_arr)
+        mse = mean_squared_error(actuals_arr, forecasts_arr)
+        rmse = math.sqrt(mse)
 
         # calculate evaluation metrics
         metrics = {
@@ -378,8 +385,9 @@ class TFT:
             'MAPE': mape,
             'RMSE': rmse
         }
+
         for key, val in metrics.items():
-            metrics[key] = round(val.item(), 2)
+            metrics[key] = round(val, 2)
 
         return forecasts, [dt.strftime('%Y-%m-%d') for dt in predicted_dates], metrics
 
