@@ -89,7 +89,7 @@ class TFT:
         # update data and set training cutoff
         self.data = combined_series
 
-        self.max_encoder_length = 60
+        self.max_encoder_length = self.data.ds.nunique()
         self.training_cutoff = self.data["time_idx"].max() - self.max_prediction_length
 
     def create_ts_dataset(self, lags=None, normalize=True):
